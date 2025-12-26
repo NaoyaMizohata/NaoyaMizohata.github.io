@@ -94,15 +94,15 @@ function createDeskElement(desk) {
   div.style.gridColumn = desk.x + 1;
   div.style.gridRow = desk.y + 1;
 
-  // 幅・高さを縦横回転に応じて変更
+  // 縦横回転に応じて width / height を設定
   if (desk.orientation === "horizontal") {
     div.style.width = deskWidth + "px";
     div.style.height = deskHeight + "px";
     div.classList.add("horizontal");
     div.classList.remove("vertical");
   } else {
-    div.style.width = deskHeight + "px";
-    div.style.height = deskWidth + "px";
+    div.style.width = deskHeight + "px";  // 入れ替え
+    div.style.height = deskWidth + "px";   // 入れ替え
     div.classList.add("vertical");
     div.classList.remove("horizontal");
   }
@@ -120,7 +120,7 @@ function createDeskElement(desk) {
     e.stopPropagation();
     desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
     save();
-    render();
+    render(); // ここで width/height 再設定される
   });
 
   addDnD(div);
