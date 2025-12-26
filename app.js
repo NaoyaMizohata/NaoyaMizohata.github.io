@@ -4,7 +4,7 @@ let maxX = 6;
 let maxY = 4;
 
 const deskWidth = 140;
-const deskHeight = 80;
+const deskHeight = 70;
 
 let colSizes = Array(maxX).fill(deskWidth);
 let rowSizes = Array(maxY).fill(deskHeight);
@@ -90,21 +90,20 @@ function createDeskElement(desk) {
 
   div.style.gridColumn = desk.x + 1;
   div.style.gridRow = desk.y + 1;
+  div.style.width = deskWidth + "px";
+  div.style.height = deskHeight + "px";
+  div.style.position = "relative";
 
-  if (desk.orientation === "horizontal") {
-    div.style.width = deskWidth + "px";
-    div.style.height = deskHeight + "px";
-    div.classList.add("horizontal");
-    div.classList.remove("vertical");
+  // transform 回転で縦向きにする
+  if (desk.orientation === "vertical") {
+    div.style.transform = "rotate(90deg)";
+    div.style.transformOrigin = "center";
   } else {
-    div.style.width = deskHeight + "px";
-    div.style.height = deskWidth + "px";
-    div.classList.add("vertical");
-    div.classList.remove("horizontal");
+    div.style.transform = "none";
   }
 
   div.innerHTML = `
-    <div class="desk-content">
+    <div class="desk-content" style="padding:8px; border:1px solid #333;">
       <strong>${desk.label}</strong><br>
       PC: ${desk.pc}<br>
       ${desk.user}
@@ -158,8 +157,8 @@ function createResizeBars() {
     const bar = document.createElement("div");
     bar.className = "resize-col";
     bar.dataset.col = i;
-    bar.style.width = "10px"; // 固定幅
-    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px"; // 中心位置
+    bar.style.width = "10px";
+    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
     bar.style.top = "0";
     bar.style.height = container.offsetHeight + "px";
     bar.style.background = "transparent";
@@ -174,8 +173,8 @@ function createResizeBars() {
     const bar = document.createElement("div");
     bar.className = "resize-row";
     bar.dataset.row = i;
-    bar.style.height = "10px"; // 固定高さ
-    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px"; // 中心位置
+    bar.style.height = "10px";
+    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
     bar.style.left = "0";
     bar.style.width = container.offsetWidth + "px";
     bar.style.background = "transparent";
@@ -193,7 +192,7 @@ function startColResize(e, colIndex) {
   const startWidth = colSizes[colIndex];
 
   function onMove(ev) {
-    colSizes[colIndex] = Math.max(30, startWidth + (ev.clientX - startX)); // 最小幅30px
+    colSizes[colIndex] = Math.max(30, startWidth + (ev.clientX - startX));
     container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
     updateColBars();
   }
@@ -222,7 +221,7 @@ function startRowResize(e, rowIndex) {
   const startHeight = rowSizes[rowIndex];
 
   function onMove(ev) {
-    rowSizes[rowIndex] = Math.max(30, startHeight + (ev.clientY - startY)); // 最小高さ30px
+    rowSizes[rowIndex] = Math.max(30, startHeight + (ev.clientY - startY));
     container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
     updateRowBars();
   }
