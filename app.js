@@ -5,25 +5,15 @@ let maxY = 4;
 
 const deskWidth = 140;
 const deskHeight = 70;
-
-// 初期セルサイズ（幅・高さの大きい方）
 const initialCellSize = Math.max(deskWidth, deskHeight);
+
 let colSizes = Array(maxX).fill(initialCellSize);
 let rowSizes = Array(maxY).fill(initialCellSize);
 
 /* --- 初期読み込み --- */
 async function loadDesks() {
-  const saved = localStorage.getItem("desks");
-  if (saved) desks = JSON.parse(saved).map(normalizeDesk);
-  else {
-    const res = await fetch("seats.json");
-    desks = (await res.json()).map(normalizeDesk);
-  }
-
-  const savedSizes = JSON.parse(localStorage.getItem("gridSizes") || "{}");
-  if (savedSizes.colSizes) colSizes = savedSizes.colSizes;
-  if (savedSizes.rowSizes) rowSizes = savedSizes.rowSizes;
-
+  const res = await fetch("seats.json");
+  desks = (await res.json()).map(normalizeDesk);
   render();
 }
 
@@ -34,12 +24,6 @@ function normalizeDesk(desk, index = 0) {
     y: Math.floor(index / maxX),
     ...desk
   };
-}
-
-/* --- 保存 --- */
-function save() {
-  localStorage.setItem("desks", JSON.stringify(desks));
-  localStorage.setItem("gridSizes", JSON.stringify({ colSizes, rowSizes }));
 }
 
 /* --- render --- */
@@ -63,7 +47,6 @@ function render() {
       if (desk) {
         container.appendChild(createDeskElement(desk));
       } else {
-        // 空席セル
         const empty = document.createElement("div");
         empty.className = "empty-cell";
         empty.dataset.x = x;
@@ -80,7 +63,6 @@ function render() {
           if (!fromDesk) return;
           fromDesk.x = parseInt(empty.dataset.x, 10);
           fromDesk.y = parseInt(empty.dataset.y, 10);
-          save();
           render();
         });
 
@@ -92,14 +74,13 @@ function render() {
   createResizeBars();
 }
 
-/* --- デスク要素作成 --- */
+/* --- デスク作成 --- */
 function createDeskElement(desk) {
   const div = document.createElement("div");
   div.className = "desk";
   div.draggable = true;
   div.dataset.id = desk.id;
 
-  // 縦横に応じたサイズ
   if (desk.orientation === "horizontal") {
     div.style.width = deskWidth + "px";
     div.style.height = deskHeight + "px";
@@ -109,7 +90,7 @@ function createDeskElement(desk) {
   }
 
   div.style.position = "relative";
-  div.style.zIndex = 10; // 隣セルより前面に
+  div.style.zIndex = 10;
 
   div.innerHTML = `
     <div class="desk-content" style="padding:8px;">
@@ -132,7 +113,6 @@ function createDeskElement(desk) {
   div.querySelector(".rotate-btn").addEventListener("click", e => {
     e.stopPropagation();
     desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
-    save();
     render();
   });
 
@@ -144,7 +124,7 @@ function createDeskElement(desk) {
 function addDnD(el) {
   el.addEventListener("dragstart", e => {
     e.dataTransfer.setData("id", el.dataset.id);
-    el.style.zIndex = 100; // ドラッグ中は最前面
+    el.style.zIndex = 100;
   });
   el.addEventListener("dragend", e => {
     el.style.zIndex = 10;
@@ -162,14 +142,16 @@ function addDnD(el) {
       [fromDesk.x, toDesk.x] = [toDesk.x, fromDesk.x];
       [fromDesk.y, toDesk.y] = [toDesk.y, fromDesk.y];
     }
-    save();
     render();
   });
 }
 
-/* --- 行・列バー作成 --- */
+/* --- 行・列バー --- */
 function createResizeBars() {
   document.querySelectorAll(".resize-col,.resize-row").forEach(b => b.remove());
+
+  const totalWidth = colSizes.reduce((a, b) => a + b, 0);
+  const totalHeight = rowSizes.reduce((a, b) => a + b, 0);
 
   // 列バー
   for (let i = 0; i < maxX - 1; i++) {
@@ -180,10 +162,10 @@ function createResizeBars() {
     bar.style.width = "10px";
     bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
     bar.style.top = "0";
-    bar.style.height = container.offsetHeight + "px";
+    bar.style.height = totalHeight + "px";
     bar.style.background = "transparent";
     bar.style.cursor = "col-resize";
-    bar.style.zIndex = 20; // デスクより前面
+    bar.style.zIndex = 20;
     bar.addEventListener("mousedown", e => startColResize(e, i));
     container.appendChild(bar);
   }
@@ -197,7 +179,7 @@ function createResizeBars() {
     bar.style.height = "10px";
     bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
     bar.style.left = "0";
-    bar.style.width = container.offsetWidth + "px";
+    bar.style.width = totalWidth + "px";
     bar.style.background = "transparent";
     bar.style.cursor = "row-resize";
     bar.style.zIndex = 20;
@@ -206,7 +188,7 @@ function createResizeBars() {
   }
 }
 
-/* --- 列幅・行幅変更 --- */
+/* --- 列・行幅変更 --- */
 function startColResize(e, colIndex) {
   e.preventDefault();
   const startX = e.clientX;
@@ -215,7 +197,7 @@ function startColResize(e, colIndex) {
     colSizes[colIndex] = Math.max(30, startWidth + (ev.clientX - startX));
     render();
   }
-  function onUp() { save(); window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); }
+  function onUp() { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); }
   window.addEventListener("mousemove", onMove);
   window.addEventListener("mouseup", onUp);
 }
@@ -228,9 +210,48 @@ function startRowResize(e, rowIndex) {
     rowSizes[rowIndex] = Math.max(30, startHeight + (ev.clientY - startY));
     render();
   }
-  function onUp() { save(); window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); }
+  function onUp() { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); }
   window.addEventListener("mousemove", onMove);
   window.addEventListener("mouseup", onUp);
+}
+
+/* --- JSON 書き出し --- */
+function exportJSON() {
+  const data = { maxX, maxY, colSizes, rowSizes, desks };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "seating.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* --- JSON インポート --- */
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.desks || !data.maxX || !data.maxY || !data.colSizes || !data.rowSizes) {
+        alert("JSON の形式が正しくありません");
+        return;
+      }
+      maxX = data.maxX;
+      maxY = data.maxY;
+      colSizes = data.colSizes;
+      rowSizes = data.rowSizes;
+      desks = data.desks.map(normalizeDesk);
+      render();
+    } catch (err) {
+      alert("JSON の読み込みに失敗しました");
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
 }
 
 /* --- 設定UI --- */
@@ -246,16 +267,11 @@ document.getElementById("applySize").addEventListener("click", () => {
   }
 });
 
-/* --- 初期化ボタン --- */
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (!confirm("本当に保存データを初期化しますか？")) return;
-  localStorage.removeItem("desks");
-  localStorage.removeItem("gridSizes");
-  colSizes = Array(maxX).fill(initialCellSize);
-  rowSizes = Array(maxY).fill(initialCellSize);
-  desks = desks.map(normalizeDesk);
-  render();
-});
+/* --- JSON 書き出しボタン --- */
+document.getElementById("exportBtn").addEventListener("click", exportJSON);
+
+/* --- JSON インポートボタン --- */
+document.getElementById("importInput").addEventListener("change", importJSON);
 
 /* --- 初期ロード --- */
 loadDesks();
