@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -12,10 +11,11 @@
   }
 
   #desk-container {
+    display: grid;
     border: 1px solid #ccc;
+    background-color: #f8f8f8;
     position: relative;
     margin-top: 20px;
-    background-color: #f8f8f8;
   }
 
   .desk {
@@ -23,10 +23,10 @@
     background-color: #e0e0ff;
     box-sizing: border-box;
     cursor: grab;
-  }
-
-  .desk:active {
-    cursor: grabbing;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
 
   .desk-content {
@@ -41,16 +41,36 @@
     cursor: pointer;
     font-weight: bold;
     user-select: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
   }
 
   .empty-cell {
     border: 1px dashed #ccc;
+    background-color: #f0f0f0;
     box-sizing: border-box;
   }
 
   .resize-col, .resize-row {
-    /* 背景は透明にしてマウス操作だけ */
     background: transparent;
+    position: absolute;
+    z-index: 20;
+  }
+
+  .resize-col {
+    width: 10px;
+    cursor: col-resize;
+  }
+
+  .resize-row {
+    height: 10px;
+    cursor: row-resize;
   }
 </style>
 </head>
@@ -71,7 +91,6 @@
 
 <div id="desk-container"></div>
 
-<!-- JS -->
 <script src="app.js"></script>
 
 </body>
