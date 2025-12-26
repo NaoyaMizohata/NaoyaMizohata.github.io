@@ -6,22 +6,21 @@ let maxY = 4;
 const deskWidth = 140;
 const deskHeight = 80;
 
-let rowGap = 10;
-let colGap = 10;
+let colSizes = Array(maxX).fill(deskWidth);
+let rowSizes = Array(maxY).fill(deskHeight);
 
 /* --- 初期読み込み --- */
 async function loadDesks() {
   const saved = localStorage.getItem("desks");
-  if (saved) {
-    desks = JSON.parse(saved).map(normalizeDesk);
-  } else {
+  if (saved) desks = JSON.parse(saved).map(normalizeDesk);
+  else {
     const res = await fetch("seats.json");
     desks = (await res.json()).map(normalizeDesk);
   }
 
-  const savedGap = JSON.parse(localStorage.getItem("gridGap") || "{}");
-  if (savedGap.rowGap !== undefined) rowGap = savedGap.rowGap;
-  if (savedGap.colGap !== undefined) colGap = savedGap.colGap;
+  const savedSizes = JSON.parse(localStorage.getItem("gridSizes") || "{}");
+  if (savedSizes.colSizes) colSizes = savedSizes.colSizes;
+  if (savedSizes.rowSizes) rowSizes = savedSizes.rowSizes;
 
   render();
 }
@@ -38,16 +37,14 @@ function normalizeDesk(desk, index = 0) {
 /* --- 保存 --- */
 function save() {
   localStorage.setItem("desks", JSON.stringify(desks));
-  localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
+  localStorage.setItem("gridSizes", JSON.stringify({ colSizes, rowSizes }));
 }
 
 /* --- render --- */
 function render() {
   container.innerHTML = "";
-  container.style.gridTemplateColumns = `repeat(${maxX}, ${deskWidth}px)`;
-  container.style.gridTemplateRows = `repeat(${maxY}, ${deskHeight}px)`;
-  container.style.columnGap = colGap + "px";
-  container.style.rowGap = rowGap + "px";
+  container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
+  container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
 
   const map = Array.from({ length: maxY }, () => Array(maxX).fill(null));
   desks.forEach(d => {
@@ -81,7 +78,7 @@ function render() {
     }
   }
 
-  createGapBars();
+  createResizeBars();
 }
 
 /* --- デスク要素作成 --- */
@@ -94,15 +91,15 @@ function createDeskElement(desk) {
   div.style.gridColumn = desk.x + 1;
   div.style.gridRow = desk.y + 1;
 
-  // 縦横回転に応じて width / height を設定
+  // 縦横回転に応じて幅/高さ
   if (desk.orientation === "horizontal") {
     div.style.width = deskWidth + "px";
     div.style.height = deskHeight + "px";
     div.classList.add("horizontal");
     div.classList.remove("vertical");
   } else {
-    div.style.width = deskHeight + "px";  // 入れ替え
-    div.style.height = deskWidth + "px";   // 入れ替え
+    div.style.width = deskHeight + "px";
+    div.style.height = deskWidth + "px";
     div.classList.add("vertical");
     div.classList.remove("horizontal");
   }
@@ -120,7 +117,7 @@ function createDeskElement(desk) {
     e.stopPropagation();
     desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
     save();
-    render(); // ここで width/height 再設定される
+    render();
   });
 
   addDnD(div);
@@ -153,97 +150,6 @@ function addDnD(el) {
   });
 }
 
-/* --- 行間・列間バー --- */
-function createGapBars() {
+/* --- 列・行バー作成 --- */
+function createResizeBars() {
   document.querySelectorAll(".resize-col, .resize-row").forEach(b => b.remove());
-
-  // 列バー
-  for (let i = 0; i < maxX - 1; i++) {
-    const bar = document.createElement("div");
-    bar.className = "resize-col";
-    bar.dataset.col = i;
-    bar.style.width = colGap + "px";
-    bar.style.left = deskWidth * (i + 1) + colGap * i + "px";
-    bar.addEventListener("mousedown", e => startColGapResize(e, bar));
-    container.appendChild(bar);
-  }
-
-  // 行バー
-  for (let i = 0; i < maxY - 1; i++) {
-    const bar = document.createElement("div");
-    bar.className = "resize-row";
-    bar.dataset.row = i;
-    bar.style.height = rowGap + "px";
-    bar.style.top = deskHeight * (i + 1) + rowGap * i + "px";
-    bar.addEventListener("mousedown", e => startRowGapResize(e, bar));
-    container.appendChild(bar);
-  }
-}
-
-function startColGapResize(e, bar) {
-  e.preventDefault();
-  const startX = e.clientX;
-  const startGap = colGap;
-
-  function onMove(ev) {
-    colGap = Math.max(0, startGap + (ev.clientX - startX));
-    container.style.columnGap = colGap + "px";
-
-    // バーの幅・位置を gap に同期
-    document.querySelectorAll(".resize-col").forEach(b => {
-      const i = parseInt(b.dataset.col, 10);
-      b.style.width = colGap + "px";
-      b.style.left = deskWidth * (i + 1) + colGap * i + "px";
-    });
-  }
-
-  function onUp() {
-    localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
-    window.removeEventListener("mousemove", onMove);
-    window.removeEventListener("mouseup", onUp);
-  }
-
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
-}
-
-function startRowGapResize(e, bar) {
-  e.preventDefault();
-  const startY = e.clientY;
-  const startGap = rowGap;
-
-  function onMove(ev) {
-    rowGap = Math.max(0, startGap + (ev.clientY - startY));
-    container.style.rowGap = rowGap + "px";
-
-    // バーの高さ・位置を gap に同期
-    document.querySelectorAll(".resize-row").forEach(b => {
-      const i = parseInt(b.dataset.row, 10);
-      b.style.height = rowGap + "px";
-      b.style.top = deskHeight * (i + 1) + rowGap * i + "px";
-    });
-  }
-
-  function onUp() {
-    localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
-    window.removeEventListener("mousemove", onMove);
-    window.removeEventListener("mouseup", onUp);
-  }
-
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
-}
-
-/* --- 設定UI --- */
-document.getElementById("applySize").addEventListener("click", () => {
-  const newX = parseInt(document.getElementById("maxX").value, 10);
-  const newY = parseInt(document.getElementById("maxY").value, 10);
-  if (newX > 0 && newY > 0) {
-    maxX = newX;
-    maxY = newY;
-    render();
-  }
-});
-
-/* --- 初期ロード --- */
-loadDesks();
