@@ -2,6 +2,15 @@ const container = document.getElementById("desk-container");
 let desks = [];
 let maxX = 6;
 let maxY = 4;
+let colSizes = Array(maxX).fill(160); // px
+let rowSizes = Array(maxY).fill(160); // px
+
+/* グリッド情報 */
+function updateGridTemplate() {
+  container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
+  container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
+}
+
 
 /* 初期データ読み込み */
 async function loadDesks() {
@@ -147,6 +156,68 @@ function createDeskElement(desk) {
 
   addDnD(div);
   return div;
+}
+
+/* リサイズバー */
+function createResizeBars() {
+  // 列バー
+  for (let i = 1; i < maxX; i++) {
+    const bar = document.createElement("div");
+    bar.className = "resize-col";
+    bar.style.left = colSizes.slice(0,i).reduce((a,b)=>a+b,0) + "px";
+    bar.addEventListener("mousedown", e => startColResize(e, i));
+    container.appendChild(bar);
+  }
+
+  // 行バー
+  for (let i = 1; i < maxY; i++) {
+    const bar = document.createElement("div");
+    bar.className = "resize-row";
+    bar.style.top = rowSizes.slice(0,i).reduce((a,b)=>a+b,0) + "px";
+    bar.addEventListener("mousedown", e => startRowResize(e, i));
+    container.appendChild(bar);
+  }
+}
+
+/* リサイズバーのドラッグ処理 */
+function startColResize(e, index) {
+  const startX = e.clientX;
+  const startWidth = colSizes[index];
+
+  function onMouseMove(ev) {
+    const delta = ev.clientX - startX;
+    colSizes[index] = Math.max(40, startWidth + delta);
+    updateGridTemplate();
+    createResizeBars();
+  }
+
+  function onMouseUp() {
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  }
+
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
+}
+
+function startRowResize(e, index) {
+  const startY = e.clientY;
+  const startHeight = rowSizes[index];
+
+  function onMouseMove(ev) {
+    const delta = ev.clientY - startY;
+    rowSizes[index] = Math.max(40, startHeight + delta);
+    updateGridTemplate();
+    createResizeBars();
+  }
+
+  function onMouseUp() {
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+  }
+
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseup", onMouseUp);
 }
 
 loadDesks();
