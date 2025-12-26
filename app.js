@@ -91,7 +91,6 @@ function createDeskElement(desk) {
   div.style.gridColumn = desk.x + 1;
   div.style.gridRow = desk.y + 1;
 
-  // 縦横回転に応じて幅/高さ
   if (desk.orientation === "horizontal") {
     div.style.width = deskWidth + "px";
     div.style.height = deskHeight + "px";
@@ -154,7 +153,6 @@ function addDnD(el) {
 function createResizeBars() {
   document.querySelectorAll(".resize-col, .resize-row").forEach(b => b.remove());
 
-  // 列バー
   for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-col";
@@ -165,7 +163,6 @@ function createResizeBars() {
     container.appendChild(bar);
   }
 
-  // 行バー
   for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-row";
@@ -206,67 +203,3 @@ function updateColBars() {
     b.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
   });
 }
-
-/* --- 行幅変更 --- */
-function startRowResize(e, rowIndex) {
-  e.preventDefault();
-  const startY = e.clientY;
-  const startHeight = rowSizes[rowIndex];
-
-  function onMove(ev) {
-    rowSizes[rowIndex] = Math.max(40, startHeight + (ev.clientY - startY));
-    container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
-    updateRowBars();
-  }
-
-  function onUp() {
-    save();
-    window.removeEventListener("mousemove", onMove);
-    window.removeEventListener("mouseup", onUp);
-  }
-
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
-}
-
-function updateRowBars() {
-  document.querySelectorAll(".resize-row").forEach(b => {
-    const i = parseInt(b.dataset.row, 10);
-    b.style.height = rowSizes[i] + "px";
-    b.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
-  });
-}
-
-/* --- 設定UI --- */
-document.getElementById("applySize").addEventListener("click", () => {
-  const newX = parseInt(document.getElementById("maxX").value, 10);
-  const newY = parseInt(document.getElementById("maxY").value, 10);
-  if (newX > 0 && newY > 0) {
-    maxX = newX;
-    maxY = newY;
-
-    while (colSizes.length < maxX) colSizes.push(deskWidth);
-    while (rowSizes.length < maxY) rowSizes.push(deskHeight);
-
-    render();
-  }
-});
-
-/* --- 初期化ボタン --- */
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (!confirm("本当に保存データを初期化しますか？")) return;
-
-  // LocalStorage の座席・列・行サイズを削除
-  localStorage.removeItem("desks");
-  localStorage.removeItem("gridSizes");
-
-  // 初期状態に戻して再描画
-  colSizes = Array(maxX).fill(deskWidth);
-  rowSizes = Array(maxY).fill(deskHeight);
-  desks = desks.map(normalizeDesk); // デフォルト状態に戻す
-  render();
-});
-
-
-/* --- 初期ロード --- */
-loadDesks();
