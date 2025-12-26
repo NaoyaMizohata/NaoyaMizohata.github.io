@@ -261,8 +261,21 @@ document.getElementById("applySize").addEventListener("click", () => {
   if (newX > 0 && newY > 0) {
     maxX = newX;
     maxY = newY;
-    while (colSizes.length < maxX) colSizes.push(initialCellSize);
-    while (rowSizes.length < maxY) rowSizes.push(initialCellSize);
+
+    // 列数を正確に maxX に揃える
+    if (colSizes.length < maxX) {
+      while (colSizes.length < maxX) colSizes.push(initialCellSize);
+    } else if (colSizes.length > maxX) {
+      colSizes = colSizes.slice(0, maxX);
+    }
+
+    // 行数を正確に maxY に揃える
+    if (rowSizes.length < maxY) {
+      while (rowSizes.length < maxY) rowSizes.push(initialCellSize);
+    } else if (rowSizes.length > maxY) {
+      rowSizes = rowSizes.slice(0, maxY);
+    }
+
     render();
   }
 });
