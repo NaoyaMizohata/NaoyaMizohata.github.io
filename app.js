@@ -151,35 +151,55 @@ function createResizeBars(){
 }
 
 function startColResize(e,index){
+  e.preventDefault();
   const startX = e.clientX;
   const startWidth = colSizes[index];
+
   function onMove(ev){
     const delta = ev.clientX - startX;
-    colSizes[index] = Math.max(40,startWidth+delta);
-    render();
+    colSizes[index] = Math.max(40,startWidth + delta);
+
+    // renderは呼ばず、バー位置のみ更新
+    const bar = document.querySelectorAll(".resize-col")[index-1];
+    if(bar) bar.style.left = colSizes.slice(0,index).reduce((a,b)=>a+b,0)+"px";
+
+    // デスクは grid-column で自動追従するので問題なし
+    container.style.gridTemplateColumns = colSizes.map(v=>v+"px").join(" ");
   }
+
   function onUp(){
     save();
+    render(); // ドラッグ終了時に正確な描画
     window.removeEventListener("mousemove",onMove);
     window.removeEventListener("mouseup",onUp);
   }
+
   window.addEventListener("mousemove",onMove);
   window.addEventListener("mouseup",onUp);
 }
 
 function startRowResize(e,index){
+  e.preventDefault();
   const startY = e.clientY;
   const startHeight = rowSizes[index];
+
   function onMove(ev){
     const delta = ev.clientY - startY;
     rowSizes[index] = Math.max(40,startHeight+delta);
-    render();
+
+    const bar = document.querySelectorAll(".resize-row")[index-1];
+    if(bar) bar.style.top = rowSizes.slice(0,index).reduce((a,b)=>a+b,0)+"px";
+
+    container.style.gridTemplateRows = rowSizes.map(v=>v+"px").join(" ");
   }
+
   function onUp(){
     save();
+    render();
     window.removeEventListener("mousemove",onMove);
     window.removeEventListener("mouseup",onUp);
   }
+
   window.addEventListener("mousemove",onMove);
   window.addEventListener("mouseup",onUp);
 }
