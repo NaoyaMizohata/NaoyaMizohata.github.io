@@ -16,7 +16,7 @@ async function loadDesks() {
 
 function normalizeDesk(desk) {
   return {
-    rotation: 0,
+    orientation: "horizontal",
     ...desk
   };
 }
@@ -24,25 +24,27 @@ function normalizeDesk(desk) {
 /* 描画 */
 function render() {
   container.innerHTML = "";
+
   desks.forEach((desk, index) => {
     const div = document.createElement("div");
-    div.className = "desk";
+    div.className = `desk ${desk.orientation}`;
     div.draggable = true;
     div.dataset.index = index;
 
-    div.style.transform = `rotate(${desk.rotation}deg)`;
-
     div.innerHTML = `
-      <strong>${desk.label}</strong><br>
-      PC: ${desk.pc}<br>
-      ${desk.user}<br>
-      <button class="rotate-btn">回転</button>
+      <div class="desk-content">
+        <strong>${desk.label}</strong><br>
+        PC: ${desk.pc}<br>
+        ${desk.user}
+      </div>
+      <button class="rotate-btn" title="向きを切り替え">↻</button>
     `;
 
-    // 回転ボタン
+    // 向き切り替え
     div.querySelector(".rotate-btn").addEventListener("click", e => {
-      e.stopPropagation(); // DnDと干渉しないように
-      desk.rotation = (desk.rotation + 90) % 360;
+      e.stopPropagation();
+      desk.orientation =
+        desk.orientation === "horizontal" ? "vertical" : "horizontal";
       render();
     });
 
