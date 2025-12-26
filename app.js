@@ -248,6 +248,10 @@ function importJSON(event) {
       colSizes = data.colSizes;
       rowSizes = data.rowSizes;
       desks = data.desks.map(normalizeDesk);
+      
+      document.getElementById("maxX").value = maxX;
+      document.getElementById("maxY").value = maxY;
+      
       render();
     } catch (err) {
       alert("JSON の読み込みに失敗しました");
