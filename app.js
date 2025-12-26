@@ -1,191 +1,97 @@
-const container = document.getElementById("desk-container");
-let desks = [];
-let maxX = 6;
-let maxY = 4;
-
-const deskWidth = 140;
-const deskHeight = 70;
-const initialColSize = deskWidth;
-const initialRowSize = deskHeight;
-
-let colSizes = Array(maxX).fill(initialColSize);
-let rowSizes = Array(maxY).fill(initialRowSize);
-
-const gapX = 10;
-const gapY = 10;
-
-/* --- 初期読み込み --- */
-async function loadDesks() {
-  try {
-    const res = await fetch("seats.json");
-    desks = (await res.json()).map((desk, index) => ({
-      orientation: "horizontal",
-      x: index % maxX,
-      y: Math.floor(index / maxX),
-      id: desk.id || `desk${index}`,
-      label: desk.label || `Desk${index + 1}`,
-      pc: desk.pc || "",
-      user: desk.user || "",
-      ...desk
-    }));
-  } catch {
-    desks = [];
-  }
-  render();
-}
-
-/* --- render --- */
-function render() {
-  container.innerHTML = "";
-  container.style.position = "relative";
-
-  // 背景セル
-  for (let y = 0; y < maxY; y++) {
-    for (let x = 0; x < maxX; x++) {
-      const cell = document.createElement("div");
-      cell.className = "empty-cell";
-      cell.style.left = colSizes.slice(0, x).reduce((a, b) => a + b, 0) + x * gapX + "px";
-      cell.style.top  = rowSizes.slice(0, y).reduce((a, b) => a + b, 0) + y * gapY + "px";
-      cell.style.width = colSizes[x] + "px";
-      cell.style.height = rowSizes[y] + "px";
-      container.appendChild(cell);
-    }
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>座席管理システム</title>
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 20px;
   }
 
-  // デスク描画
-  desks.forEach(desk => {
-    const div = document.createElement("div");
-    div.className = "desk " + desk.orientation;
-    div.dataset.id = desk.id;
-
-    const w = desk.orientation === "horizontal" ? deskWidth : deskHeight;
-    const h = desk.orientation === "horizontal" ? deskHeight : deskWidth;
-    div.style.width = w + "px";
-    div.style.height = h + "px";
-    div.style.left = colSizes.slice(0, desk.x).reduce((a, b) => a + b, 0) + desk.x * gapX + "px";
-    div.style.top  = rowSizes.slice(0, desk.y).reduce((a, b) => a + b, 0) + desk.y * gapY + "px";
-
-    div.innerHTML = `
-      <div class="desk-content">
-        <strong>${desk.label}</strong><br>
-        PC: ${desk.pc}<br>
-        ${desk.user}
-      </div>
-      <button class="rotate-btn">↻</button>
-    `;
-
-    // 回転
-    div.querySelector(".rotate-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
-      render();
-    });
-
-    addDnD(div);
-    container.appendChild(div);
-  });
-
-  createResizeBars();
-}
-
-/* --- DnD --- */
-function addDnD(el) {
-  el.draggable = true;
-  el.addEventListener("dragstart", e => {
-    e.dataTransfer.setData("id", el.dataset.id);
-    el.style.zIndex = 100;
-  });
-  el.addEventListener("dragend", e => {
-    el.style.zIndex = 10;
-  });
-}
-
-/* --- 行・列バー --- */
-function createResizeBars() {
-  document.querySelectorAll(".resize-col,.resize-row").forEach(b => b.remove());
-
-  const totalWidth = colSizes.reduce((a,b)=>a+b,0) + (maxX-1)*gapX;
-  const totalHeight= rowSizes.reduce((a,b)=>a+b,0) + (maxY-1)*gapY;
-
-  for (let i = 0; i < maxX-1; i++) {
-    const bar = document.createElement("div");
-    bar.className = "resize-col";
-    bar.style.left = colSizes.slice(0,i+1).reduce((a,b)=>a+b,0) + i*gapX - 5 + "px";
-    bar.style.top = 0;
-    bar.style.height = totalHeight + "px";
-    bar.addEventListener("mousedown", e => startColResize(e,i));
-    container.appendChild(bar);
+  #desk-container {
+    display: grid;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+    position: relative;
+    margin-top: 20px;
   }
 
-  for (let i = 0; i < maxY-1; i++) {
-    const bar = document.createElement("div");
-    bar.className = "resize-row";
-    bar.style.top = rowSizes.slice(0,i+1).reduce((a,b)=>a+b,0) + i*gapY - 5 + "px";
-    bar.style.left = 0;
-    bar.style.width = totalWidth + "px";
-    bar.addEventListener("mousedown", e => startRowResize(e,i));
-    container.appendChild(bar);
+  .desk {
+    border: 1px solid #333;
+    background-color: #e0e0ff;
+    box-sizing: border-box;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
-}
 
-/* --- 列・行リサイズ --- */
-function startColResize(e, i) {
-  e.preventDefault();
-  const startX = e.clientX;
-  const startWidth = colSizes[i];
-  function onMove(ev) {
-    colSizes[i] = Math.max(30, startWidth + (ev.clientX - startX));
-    render();
+  .desk-content {
+    text-align: center;
+    user-select: none;
   }
-  function onUp(){ window.removeEventListener("mousemove",onMove); window.removeEventListener("mouseup",onUp);}
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
-}
-function startRowResize(e, i) {
-  e.preventDefault();
-  const startY = e.clientY;
-  const startHeight = rowSizes[i];
-  function onMove(ev) {
-    rowSizes[i] = Math.max(30, startHeight + (ev.clientY - startY));
-    render();
+
+  .rotate-btn {
+    border: none;
+    background: #88f;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
   }
-  function onUp(){ window.removeEventListener("mousemove",onMove); window.removeEventListener("mouseup",onUp);}
-  window.addEventListener("mousemove", onMove);
-  window.addEventListener("mouseup", onUp);
-}
 
-/* --- JSON --- */
-function exportJSON() {
-  const data = { maxX,maxY,colSizes,rowSizes,desks };
-  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download="seating.json";
-  a.click();
-}
-function importJSON(event) {
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      maxX = data.maxX; maxY = data.maxY;
-      colSizes = data.colSizes; rowSizes = data.rowSizes;
-      desks = data.desks.map((desk,index)=>({
-        orientation: desk.orientation || "horizontal",
-        x: desk.x,
-        y: desk.y,
-        id: desk.id || `desk${index}`,
-        label: desk.label || `Desk${index+1}`,
-        pc: desk.pc || "",
-        user: desk.user || ""
-      }));
-      render();
-    } catch(err){ alert("JSON読み込み失敗"); console.error(err);}
-  };
-  reader.readAsText(file);
-}
+  .empty-cell {
+    border: 1px dashed #ccc;
+    background-color: #f0f0f0;
+    box-sizing: border-box;
+  }
 
-/* --- 初期ロード --- */
-loadDesks();
+  .resize-col, .resize-row {
+    background: transparent;
+    position: absolute;
+    z-index: 20;
+  }
+
+  .resize-col {
+    width: 10px;
+    cursor: col-resize;
+  }
+
+  .resize-row {
+    height: 10px;
+    cursor: row-resize;
+  }
+</style>
+</head>
+<body>
+
+<h2>座席管理システム</h2>
+
+<div>
+  <label>列数: <input type="number" id="maxX" value="6" min="1"></label>
+  <label>行数: <input type="number" id="maxY" value="4" min="1"></label>
+  <button id="applySize">適用</button>
+</div>
+
+<div style="margin-top:10px;">
+  <button id="exportBtn">JSON 書き出し</button>
+  <input type="file" id="importInput" accept=".json">
+</div>
+
+<div id="desk-container"></div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
