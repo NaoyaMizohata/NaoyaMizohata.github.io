@@ -1,10 +1,79 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>座席管理システム</title>
-<link rel="stylesheet" href="style.css">
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 20px;
+  }
+
+  #desk-container {
+    display: grid;
+    border: 1px solid #ccc;
+    background-color: #f8f8f8;
+    position: relative;
+    margin-top: 20px;
+  }
+
+  .desk {
+    border: 1px solid #333;
+    background-color: #e0e0ff;
+    box-sizing: border-box;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .desk-content {
+    text-align: center;
+    user-select: none;
+  }
+
+  .rotate-btn {
+    border: none;
+    background: #88f;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    user-select: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
+  }
+
+  .empty-cell {
+    border: 1px dashed #ccc;
+    background-color: #f0f0f0;
+    box-sizing: border-box;
+  }
+
+  .resize-col, .resize-row {
+    background: transparent;
+    position: absolute;
+    z-index: 20;
+  }
+
+  .resize-col {
+    width: 10px;
+    cursor: col-resize;
+  }
+
+  .resize-row {
+    height: 10px;
+    cursor: row-resize;
+  }
+</style>
 </head>
 <body>
 
@@ -20,8 +89,6 @@
   <button id="exportBtn">JSON 書き出し</button>
   <input type="file" id="importInput" accept=".json">
 </div>
-
-<div id="desk-container"></div>
 
 <!-- 編集モーダル -->
 <div id="edit-modal" style="display:none;">
@@ -46,6 +113,9 @@
   </div>
 </div>
 
+<div id="desk-container"></div>
+
 <script src="app.js"></script>
+
 </body>
 </html>
