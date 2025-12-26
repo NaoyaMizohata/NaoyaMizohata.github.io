@@ -134,9 +134,9 @@ function createDeskElement(desk) {
     render();
   });
   
-  div.querySelector(".desk-content").addEventListener("dblclick", (e) => {
-    e.stopPropagation();
-    openEditModal(desk);
+  div.querySelector(".desk-content").addEventListener("contextmenu", (e) => {
+    e.preventDefault(); // デフォルトのメニューをキャンセル
+    openEditModal(desk); // 編集モーダルを開く
   });
 
   addDnD(div);
