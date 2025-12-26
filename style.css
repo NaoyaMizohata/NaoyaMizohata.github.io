@@ -62,21 +62,9 @@ body {
 
 .resize-col, .resize-row {
   position: absolute;
-  background: rgba(0,0,0,0.1);
   z-index: 10;
-  user-select: none;
+  background: transparent; /* 完全透明 */
 }
 
-.resize-col {
-  width: 5px;
-  top: 0;
-  bottom: 0;
-  cursor: col-resize;
-}
-
-.resize-row {
-  height: 5px;
-  left: 0;
-  right: 0;
-  cursor: row-resize;
-}
+.resize-col { cursor: col-resize; }
+.resize-row { cursor: row-resize; }
