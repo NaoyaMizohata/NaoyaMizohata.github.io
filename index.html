@@ -2,96 +2,20 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>座席管理システム</title>
-<style>
-  body {
-    font-family: sans-serif;
-    margin: 20px;
-  }
-
-  #desk-container {
-    display: grid;
-    border: 1px solid #ccc;
-    background-color: #f8f8f8;
-    position: relative;
-    margin-top: 20px;
-  }
-
-  .desk {
-    border: 1px solid #333;
-    background-color: #e0e0ff;
-    box-sizing: border-box;
-    cursor: grab;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-  }
-
-  .desk-content {
-    text-align: center;
-    user-select: none;
-  }
-
-  .rotate-btn {
-    border: none;
-    background: #88f;
-    color: #fff;
-    cursor: pointer;
-    font-weight: bold;
-    user-select: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    margin: 0;
-    z-index: 10;
-  }
-
-  .empty-cell {
-    border: 1px dashed #ccc;
-    background-color: #f0f0f0;
-    box-sizing: border-box;
-  }
-
-  .resize-col, .resize-row {
-    background: transparent;
-    position: absolute;
-    z-index: 20;
-  }
-
-  .resize-col {
-    width: 10px;
-    cursor: col-resize;
-  }
-
-  .resize-row {
-    height: 10px;
-    cursor: row-resize;
-  }
-</style>
+<title>座席管理</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>座席管理システム</h2>
-
-<div>
-  <label>列数: <input type="number" id="maxX" value="6" min="1"></label>
-  <label>行数: <input type="number" id="maxY" value="4" min="1"></label>
-  <button id="applySize">適用</button>
-</div>
-
-<div style="margin-top:10px;">
-  <button id="exportBtn">JSON 書き出し</button>
-  <input type="file" id="importInput" accept=".json">
-</div>
+<h1>座席管理システム</h1>
 
 <div id="desk-container"></div>
 
-<script src="app.js"></script>
+<div style="margin-top:10px;">
+  <button onclick="exportJSON()">JSON書き出し</button>
+  <input type="file" id="importFile" onchange="importJSON(event)">
+</div>
 
+<script src="script.js"></script>
 </body>
 </html>
