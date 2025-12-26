@@ -4,23 +4,21 @@ body {
 }
 
 #desk-container {
-  position: relative; /* 親基準で絶対配置 */
-  /* 背景色削除で範囲外は透明 */
+  position: relative;
 }
 
-/* デスク */
 .desk {
-  width: 140px;  /* JSで上書きされる */
-  height: 70px;  /* JSで上書きされる */
+  width: 140px;  
+  height: 70px;  
   border: 1px solid #333;
-  background: #fff; /* デスクは白背景 */
+  background: #fff;
   cursor: grab;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 8px;
   box-sizing: border-box;
-  position: absolute; /* 絶対配置 */
+  position: absolute;
 }
 
 .desk.horizontal {
@@ -31,7 +29,6 @@ body {
   flex-direction: column;
 }
 
-/* デスク内テキストは常に中央 */
 .desk-content {
   display: flex;
   flex-direction: column;
@@ -39,10 +36,9 @@ body {
   align-items: center;
   text-align: center;
   font-size: 13px;
-  pointer-events: none; /* ボタン以外はイベント無効 */
+  pointer-events: none;
 }
 
-/* 回転ボタン ↻ */
 .rotate-btn {
   background: none;
   border: none;
@@ -61,54 +57,20 @@ body {
   opacity: 0.6;
 }
 
-/* 左右 ↔ ボタン（回転ボタン右側） */
-.flip-x-btn {
-  position: absolute;
-  top: 2px;
-  left: 28px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.flip-x-btn:hover {
-  opacity: 0.6;
-}
-
-/* 上下 ↕ ボタン（回転ボタン下側） */
-.flip-y-btn {
-  position: absolute;
-  top: 28px;
-  left: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.flip-y-btn:hover {
-  opacity: 0.6;
-}
-
-/* 空セル */
 .empty-cell {
   border: 1px dashed #aaa;
-  background: #f0f0f0; /* 空席セルだけ灰色 */
+  background: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: absolute; /* 絶対配置 */
+  position: absolute;
   box-sizing: border-box;
 }
 
-/* 行・列リサイズバー */
 .resize-col, .resize-row {
   position: absolute;
   z-index: 20;
-  background: transparent; /* 完全透明 */
+  background: transparent;
 }
 
 .resize-col { cursor: col-resize; }
