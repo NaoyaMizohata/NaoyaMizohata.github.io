@@ -13,10 +13,11 @@ async function loadDesks() {
   render();
 }
 
-
-function normalizeDesk(desk) {
+function normalizeDesk(desk, index) {
   return {
     orientation: "horizontal",
+    x: index % 6,
+    y: Math.floor(index / 6),
     ...desk
   };
 }
@@ -29,7 +30,11 @@ function render() {
     const div = document.createElement("div");
     div.className = `desk ${desk.orientation}`;
     div.draggable = true;
-    div.dataset.index = index;
+
+    div.style.gridColumn = desk.x + 1;
+    div.style.gridRow = desk.y + 1;
+
+    div.dataset.id = desk.id;
 
     div.innerHTML = `
       <div class="desk-content">
@@ -37,7 +42,7 @@ function render() {
         PC: ${desk.pc}<br>
         ${desk.user}
       </div>
-      <button class="rotate-btn" title="向きを切り替え">↻</button>
+      <button class="rotate-btn">↻</button>
     `;
 
     // 向き切り替え
@@ -45,25 +50,19 @@ function render() {
       e.stopPropagation();
       desk.orientation =
         desk.orientation === "horizontal" ? "vertical" : "horizontal";
+      save();
       render();
     });
 
     addDnD(div);
     container.appendChild(div);
   });
-
-  localStorage.setItem("desks", JSON.stringify(desks));
 }
 
 /* ドラッグ＆ドロップ */
 function addDnD(el) {
   el.addEventListener("dragstart", e => {
-    el.classList.add("dragging");
-    e.dataTransfer.setData("text/plain", el.dataset.index);
-  });
-
-  el.addEventListener("dragend", () => {
-    el.classList.remove("dragging");
+    e.dataTransfer.setData("id", el.dataset.id);
   });
 
   el.addEventListener("dragover", e => {
@@ -72,17 +71,28 @@ function addDnD(el) {
 
   el.addEventListener("drop", e => {
     e.preventDefault();
-    const from = Number(e.dataTransfer.getData("text/plain"));
-    const to = Number(el.dataset.index);
 
-    if (from === to) return;
+    const fromId = e.dataTransfer.getData("id");
+    const toId = el.dataset.id;
 
-    const temp = desks[from];
-    desks[from] = desks[to];
-    desks[to] = temp;
+    if (fromId === toId) return;
 
+    const from = desks.find(d => d.id === fromId);
+    const to = desks.find(d => d.id === toId);
+
+    // 座標をスワップ
+    [from.x, to.x] = [to.x, from.x];
+    [from.y, to.y] = [to.y, from.y];
+
+    save();
     render();
   });
 }
+
+/* 保存関数 */
+function save() {
+  localStorage.setItem("desks", JSON.stringify(desks));
+}
+
 
 loadDesks();
