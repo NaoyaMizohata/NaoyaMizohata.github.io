@@ -5,9 +5,15 @@ body {
 
 #desk-container {
   display: grid;
-  gap: 0px;
+  gap: 10px 10px; /* rowGap columnGap */
   position: relative;
 }
+
+.desk {
+  width: 140px;
+  height: 80px;
+}
+
 
 .desk {
   border: 1px solid #333;
