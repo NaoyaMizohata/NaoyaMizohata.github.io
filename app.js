@@ -28,8 +28,8 @@ async function loadDesks() {
 function normalizeDesk(desk, index = 0) {
   return {
     orientation: "horizontal",
-    alignX: "left",
-    alignY: "top",
+    cellAnchorX: "left",
+    cellAnchorY: "top",
     x: index % maxX,
     y: Math.floor(index / maxX),
     id: desk.id || `desk${index}`,
@@ -105,8 +105,8 @@ function createDeskElement(desk) {
     div.style.height = deskWidth + "px";
   }
 
-  div.style.justifyContent = desk.alignX === "right" ? "flex-end" : "flex-start";
-  div.style.alignItems = desk.alignY === "bottom" ? "flex-end" : "flex-start";
+  div.style.justifyContent = desk.cellAnchorX === "right" ? "flex-end" : "flex-start";
+  div.style.alignItems = desk.cellAnchorY === "bottom" ? "flex-end" : "flex-start";
 
   div.innerHTML = `
     <div class="desk-content">
@@ -126,17 +126,17 @@ function createDeskElement(desk) {
     render();
   });
 
-  // 左右入れ替え
+  // 左右入れ替え（セル内）
   div.querySelector(".flip-x-btn").addEventListener("click", e => {
     e.stopPropagation();
-    desk.alignX = desk.alignX === "left" ? "right" : "left";
+    desk.cellAnchorX = desk.cellAnchorX === "left" ? "right" : "left";
     render();
   });
 
-  // 上下入れ替え
+  // 上下入れ替え（セル内）
   div.querySelector(".flip-y-btn").addEventListener("click", e => {
     e.stopPropagation();
-    desk.alignY = desk.alignY === "top" ? "bottom" : "top";
+    desk.cellAnchorY = desk.cellAnchorY === "top" ? "bottom" : "top";
     render();
   });
 
