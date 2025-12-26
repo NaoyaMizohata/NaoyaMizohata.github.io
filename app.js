@@ -302,9 +302,9 @@ function addDeskAt(x, y) {
 
 /* ---------- edit modal ---------- */
 const modal = document.getElementById("edit-modal");
-const labelInput = document.getElementById("edit-label");
-const pcInput = document.getElementById("edit-pc");
-const userInput = document.getElementById("edit-user");
+const labelInput = document.getElementById("edit-1");
+const pcInput = document.getElementById("edit-2");
+const userInput = document.getElementById("edit-3");
 
 function openEditModal(desk) {
   editingDeskId = desk.id;
