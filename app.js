@@ -58,6 +58,21 @@ function render(){
         empty.className="empty-cell";
         empty.dataset.x = x;
         empty.dataset.y = y;
+      
+        // 空席セルにも DnD イベントを設定
+        empty.addEventListener("dragover", e => e.preventDefault());
+        empty.addEventListener("drop", e => {
+          e.preventDefault();
+          const fromId = e.dataTransfer.getData("id");
+          const fromDesk = desks.find(d => d.id === fromId);
+          if (!fromDesk) return;
+          // 座標を空席セルに移動
+          fromDesk.x = parseInt(empty.dataset.x,10);
+          fromDesk.y = parseInt(empty.dataset.y,10);
+          save();
+          render();
+        });
+      
         container.appendChild(empty);
       }
     }
