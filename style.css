@@ -1,15 +1,50 @@
-.desk {
-  border: 1px solid #333;
-  padding: 10px;
-  width: 120px;
-  background: #f5f5f5;
-  cursor: grab;
-  transform-origin: center center;
-  transition: transform 0.15s ease;
+#desk-container {
+  display: flex;
+  gap: 12px;
 }
 
+/* 共通 */
+.desk {
+  border: 1px solid #333;
+  background: #f5f5f5;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* 横向き */
+.desk.horizontal {
+  width: 140px;
+  height: 80px;
+  flex-direction: row;
+}
+
+/* 縦向き */
+.desk.vertical {
+  width: 80px;
+  height: 140px;
+  flex-direction: column;
+}
+
+/* 中身（文字は常に水平） */
+.desk-content {
+  font-size: 13px;
+  text-align: center;
+}
+
+/* 回転アイコンボタン */
 .rotate-btn {
-  margin-top: 6px;
-  width: 100%;
-  font-size: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  user-select: none;
+}
+
+.rotate-btn:hover {
+  opacity: 0.6;
 }
