@@ -103,7 +103,7 @@ function createDeskElement(desk) {
   }
 
   div.innerHTML = `
-    <div class="desk-content" style="padding:8px; border:1px solid #333;">
+    <div class="desk-content" style="padding:8px;">
       <strong>${desk.label}</strong><br>
       PC: ${desk.pc}<br>
       ${desk.user}
