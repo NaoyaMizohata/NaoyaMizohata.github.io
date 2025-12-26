@@ -1,10 +1,26 @@
 #desk-container {
   display: grid;
-  grid-template-columns: repeat(6, 160px);
-  grid-auto-rows: 160px;
-  gap: 12px;
+  gap: 0px; /* 行間・列間の線をドラッグバーで作る */
+  position: relative;
 }
-
+.resize-col {
+  position: absolute;
+  width: 5px;
+  top: 0;
+  bottom: 0;
+  cursor: col-resize;
+  background: rgba(0,0,0,0.1);
+  z-index: 10;
+}
+.resize-row {
+  position: absolute;
+  height: 5px;
+  left: 0;
+  right: 0;
+  cursor: row-resize;
+  background: rgba(0,0,0,0.1);
+  z-index: 10;
+}
 
 /* 共通 */
 .desk {
