@@ -6,7 +6,6 @@ let maxY = 4;
 const deskWidth = 140;
 const deskHeight = 70;
 const initialCellSize = Math.max(deskWidth, deskHeight);
-
 let colSizes = Array(maxX).fill(initialCellSize);
 let rowSizes = Array(maxY).fill(initialCellSize);
 
@@ -29,12 +28,16 @@ function normalizeDesk(desk, index = 0) {
 /* --- render --- */
 function render() {
   container.innerHTML = "";
-  container.style.display = "grid";
+
+  // grid サイズ設定
   container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
   container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
-  container.style.position = "relative";
 
-  // マップ作成
+  // grid 全体サイズ計算
+  const totalWidth = colSizes.reduce((a, b) => a + b, 0);
+  const totalHeight = rowSizes.reduce((a, b) => a + b, 0);
+
+  // grid 用マップ
   const map = Array.from({ length: maxY }, () => Array(maxX).fill(null));
   desks.forEach(d => {
     if (d.x < maxX && d.y < maxY) map[d.y][d.x] = d;
@@ -45,16 +48,15 @@ function render() {
     for (let x = 0; x < maxX; x++) {
       const desk = map[y][x];
       if (desk) {
-        container.appendChild(createDeskElement(desk));
+        const deskEl = createDeskElement(desk);
+        deskEl.style.gridColumnStart = x + 1;
+        deskEl.style.gridRowStart = y + 1;
+        container.appendChild(deskEl);
       } else {
         const empty = document.createElement("div");
         empty.className = "empty-cell";
         empty.dataset.x = x;
         empty.dataset.y = y;
-        empty.style.position = "relative";
-        empty.style.width = "100%";
-        empty.style.height = "100%";
-
         empty.addEventListener("dragover", e => e.preventDefault());
         empty.addEventListener("drop", e => {
           e.preventDefault();
@@ -65,13 +67,14 @@ function render() {
           fromDesk.y = parseInt(empty.dataset.y, 10);
           render();
         });
-
+        empty.style.gridColumnStart = x + 1;
+        empty.style.gridRowStart = y + 1;
         container.appendChild(empty);
       }
     }
   }
 
-  createResizeBars();
+  createResizeBars(totalWidth, totalHeight);
 }
 
 /* --- デスク作成 --- */
@@ -93,21 +96,12 @@ function createDeskElement(desk) {
   div.style.zIndex = 10;
 
   div.innerHTML = `
-    <div class="desk-content" style="padding:8px;">
+    <div class="desk-content">
       <strong>${desk.label}</strong><br>
       PC: ${desk.pc}<br>
       ${desk.user}
     </div>
-    <button class="rotate-btn" style="
-      position:absolute;
-      top:0;
-      left:0;
-      z-index:20;
-      width:24px;
-      height:24px;
-      padding:0;
-      margin:0;
-    ">↻</button>
+    <button class="rotate-btn">↻</button>
   `;
 
   div.querySelector(".rotate-btn").addEventListener("click", e => {
@@ -129,13 +123,11 @@ function addDnD(el) {
   el.addEventListener("dragend", e => {
     el.style.zIndex = 10;
   });
-
   el.addEventListener("dragover", e => e.preventDefault());
   el.addEventListener("drop", e => {
     e.preventDefault();
     const fromId = e.dataTransfer.getData("id");
     const fromDesk = desks.find(d => d.id === fromId);
-
     const toDeskId = el.dataset.id;
     if (toDeskId) {
       const toDesk = desks.find(d => d.id === toDeskId);
@@ -147,48 +139,31 @@ function addDnD(el) {
 }
 
 /* --- 行・列バー --- */
-function createResizeBars() {
+function createResizeBars(totalWidth, totalHeight) {
   document.querySelectorAll(".resize-col,.resize-row").forEach(b => b.remove());
 
-  const totalWidth = colSizes.reduce((a, b) => a + b, 0);
-  const totalHeight = rowSizes.reduce((a, b) => a + b, 0);
-
-  // 列バー
   for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-col";
-    bar.dataset.col = i;
-    bar.style.position = "absolute";
-    bar.style.width = "10px";
     bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
-    bar.style.top = "0";
+    bar.style.top = 0;
     bar.style.height = totalHeight + "px";
-    bar.style.background = "transparent";
-    bar.style.cursor = "col-resize";
-    bar.style.zIndex = 20;
     bar.addEventListener("mousedown", e => startColResize(e, i));
     container.appendChild(bar);
   }
 
-  // 行バー
   for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-row";
-    bar.dataset.row = i;
-    bar.style.position = "absolute";
-    bar.style.height = "10px";
     bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
-    bar.style.left = "0";
+    bar.style.left = 0;
     bar.style.width = totalWidth + "px";
-    bar.style.background = "transparent";
-    bar.style.cursor = "row-resize";
-    bar.style.zIndex = 20;
     bar.addEventListener("mousedown", e => startRowResize(e, i));
     container.appendChild(bar);
   }
 }
 
-/* --- 列・行幅変更 --- */
+/* --- 列・行サイズ変更 --- */
 function startColResize(e, colIndex) {
   e.preventDefault();
   const startX = e.clientX;
@@ -231,7 +206,6 @@ function exportJSON() {
 function importJSON(event) {
   const file = event.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = e => {
     try {
@@ -254,7 +228,7 @@ function importJSON(event) {
   reader.readAsText(file);
 }
 
-/* --- 設定UI --- */
+/* --- 列・行数適用 --- */
 document.getElementById("applySize").addEventListener("click", () => {
   const newX = parseInt(document.getElementById("maxX").value, 10);
   const newY = parseInt(document.getElementById("maxY").value, 10);
@@ -262,28 +236,18 @@ document.getElementById("applySize").addEventListener("click", () => {
     maxX = newX;
     maxY = newY;
 
-    // 列数を正確に maxX に揃える
-    if (colSizes.length < maxX) {
-      while (colSizes.length < maxX) colSizes.push(initialCellSize);
-    } else if (colSizes.length > maxX) {
-      colSizes = colSizes.slice(0, maxX);
-    }
-
-    // 行数を正確に maxY に揃える
-    if (rowSizes.length < maxY) {
-      while (rowSizes.length < maxY) rowSizes.push(initialCellSize);
-    } else if (rowSizes.length > maxY) {
-      rowSizes = rowSizes.slice(0, maxY);
-    }
+    // colSizes / rowSizes を正確に調整
+    colSizes = colSizes.slice(0, maxX);
+    while (colSizes.length < maxX) colSizes.push(initialCellSize);
+    rowSizes = rowSizes.slice(0, maxY);
+    while (rowSizes.length < maxY) rowSizes.push(initialCellSize);
 
     render();
   }
 });
 
-/* --- JSON 書き出しボタン --- */
+/* --- ボタンイベント --- */
 document.getElementById("exportBtn").addEventListener("click", exportJSON);
-
-/* --- JSON インポートボタン --- */
 document.getElementById("importInput").addEventListener("change", importJSON);
 
 /* --- 初期ロード --- */
