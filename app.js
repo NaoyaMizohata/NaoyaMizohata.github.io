@@ -33,9 +33,9 @@ function normalizeDesk(desk, index = 0) {
     x: index % maxX,
     y: Math.floor(index / maxX),
     id: desk.id || `desk${index}`,
-    label: desk.label || `Desk${index + 1}`,
-    pc: desk.pc || "",
-    user: desk.user || "",
+    text1: desk.text1 || `Desk${index + 1}`,
+    text2: desk.text2 || "",
+    text3: desk.text3 || "",
     ...desk
   };
 }
@@ -121,9 +121,9 @@ function createDeskElement(desk) {
 
   div.innerHTML = `
     <div class="desk-content">
-      <strong>${desk.label}</strong><br>
-      PC: ${desk.pc}<br>
-      ${desk.user}
+      <strong>${desk.text1}</strong><br>
+      ${desk.text2}<br>
+      ${desk.text3}
     </div>
     <button class="rotate-btn">↻</button>
   `;
@@ -292,9 +292,9 @@ function addDeskAt(x, y) {
     x,
     y,
     orientation: "horizontal",
-    label: "新しいデスク",
-    pc: "",
-    user: ""
+    text1: "新しいデスク",
+    text2: "",
+    text3: ""
   });
 
   render();
@@ -302,23 +302,23 @@ function addDeskAt(x, y) {
 
 /* ---------- edit modal ---------- */
 const modal = document.getElementById("edit-modal");
-const labelInput = document.getElementById("edit-1");
-const pcInput = document.getElementById("edit-2");
-const userInput = document.getElementById("edit-3");
+const text1Input = document.getElementById("edit-1");
+const text2Input = document.getElementById("edit-2");
+const text3Input = document.getElementById("edit-3");
 
 function openEditModal(desk) {
   editingDeskId = desk.id;
-  labelInput.value = desk.label;
-  pcInput.value = desk.pc;
-  userInput.value = desk.user;
+  text1Input.value = desk.text1;
+  text2Input.value = desk.text2;
+  text3Input.value = desk.text3;
 }
 
 document.getElementById("save-edit").onclick = () => {
   const desk = desks.find(d => d.id === editingDeskId);
   if (!desk) return;
-  desk.label = labelInput.value;
-  desk.pc = pcInput.value;
-  desk.user = userInput.value;
+  desk.text1 = text1Input.value;
+  desk.text2 = text2Input.value;
+  desk.text3 = text3Input.value;
   closeModal();
   render();
 };
@@ -334,9 +334,9 @@ document.getElementById("cancel-edit").onclick = () => closeModal();
 
 function closeModal() {
   editingDeskId = null;
-  labelInput.value = "";
-  pcInput.value = "";
-  userInput.value = "";
+  text1Input.value = "";
+  text2Input.value = "";
+  text3Input.value = "";
 }
 
 /* --- 初期ロード --- */
