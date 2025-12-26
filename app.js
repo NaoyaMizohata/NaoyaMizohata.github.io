@@ -8,7 +8,7 @@ let maxY = 4;
 const deskWidth = 140;
 const deskHeight = 70;
 const initialColSize = deskWidth;
-const initialRowSize = deskHeight;
+const initialRowSize = deskWidth;
 
 let colSizes = Array(maxX).fill(initialColSize);
 let rowSizes = Array(maxY).fill(initialRowSize);
