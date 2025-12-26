@@ -5,12 +5,20 @@ let desks = [];
 async function loadDesks() {
   const saved = localStorage.getItem("desks");
   if (saved) {
-    desks = JSON.parse(saved);
+    desks = JSON.parse(saved).map(normalizeDesk);
   } else {
     const res = await fetch("seats.json");
-    desks = await res.json();
+    desks = (await res.json()).map(normalizeDesk);
   }
   render();
+}
+
+
+function normalizeDesk(desk) {
+  return {
+    rotation: 0,
+    ...desk
+  };
 }
 
 /* 描画 */
@@ -22,11 +30,21 @@ function render() {
     div.draggable = true;
     div.dataset.index = index;
 
+    div.style.transform = `rotate(${desk.rotation}deg)`;
+
     div.innerHTML = `
       <strong>${desk.label}</strong><br>
       PC: ${desk.pc}<br>
-      ${desk.user}
+      ${desk.user}<br>
+      <button class="rotate-btn">回転</button>
     `;
+
+    // 回転ボタン
+    div.querySelector(".rotate-btn").addEventListener("click", e => {
+      e.stopPropagation(); // DnDと干渉しないように
+      desk.rotation = (desk.rotation + 90) % 360;
+      render();
+    });
 
     addDnD(div);
     container.appendChild(div);
