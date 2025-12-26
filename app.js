@@ -2,8 +2,12 @@ const container = document.getElementById("desk-container");
 let desks = [];
 let maxX = 6;
 let maxY = 4;
-let colSizes = Array(maxX).fill(160);
-let rowSizes = Array(maxY).fill(160);
+
+const deskWidth = 140;
+const deskHeight = 80;
+
+let rowGap = 10;
+let colGap = 10;
 
 /* --- 初期読み込み --- */
 async function loadDesks() {
@@ -15,83 +19,83 @@ async function loadDesks() {
     desks = (await res.json()).map(normalizeDesk);
   }
 
-  const savedSizes = JSON.parse(localStorage.getItem("gridSizes") || "{}");
-  if (savedSizes.colSizes) colSizes = savedSizes.colSizes;
-  if (savedSizes.rowSizes) rowSizes = savedSizes.rowSizes;
+  const savedGap = JSON.parse(localStorage.getItem("gridGap") || "{}");
+  if (savedGap.rowGap !== undefined) rowGap = savedGap.rowGap;
+  if (savedGap.colGap !== undefined) colGap = savedGap.colGap;
 
   render();
 }
 
-function normalizeDesk(desk,index=0){
+function normalizeDesk(desk, index = 0) {
   return {
-    orientation:"horizontal",
-    x: index%maxX,
-    y: Math.floor(index/maxX),
+    orientation: "horizontal",
+    x: index % maxX,
+    y: Math.floor(index / maxX),
     ...desk
   };
 }
 
 /* --- 保存 --- */
-function save(){
-  localStorage.setItem("desks",JSON.stringify(desks));
-  localStorage.setItem("gridSizes",JSON.stringify({colSizes,rowSizes}));
+function save() {
+  localStorage.setItem("desks", JSON.stringify(desks));
+  localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
 }
 
 /* --- render --- */
-function render(){
-  container.innerHTML="";
+function render() {
+  container.innerHTML = "";
+  container.style.gridTemplateColumns = `repeat(${maxX}, ${deskWidth}px)`;
+  container.style.gridTemplateRows = `repeat(${maxY}, ${deskHeight}px)`;
+  container.style.columnGap = colGap + "px";
+  container.style.rowGap = rowGap + "px";
 
-  container.style.gridTemplateColumns = colSizes.map(v=>v+"px").join(" ");
-  container.style.gridTemplateRows = rowSizes.map(v=>v+"px").join(" ");
-
-  const map = Array.from({length:maxY},()=>Array(maxX).fill(null));
-  desks.forEach(d=>{
-    if(d.x<maxX && d.y<maxY) map[d.y][d.x]=d;
+  const map = Array.from({ length: maxY }, () => Array(maxX).fill(null));
+  desks.forEach(d => {
+    if (d.x < maxX && d.y < maxY) map[d.y][d.x] = d;
   });
 
-  for(let y=0;y<maxY;y++){
-    for(let x=0;x<maxX;x++){
+  for (let y = 0; y < maxY; y++) {
+    for (let x = 0; x < maxX; x++) {
       const desk = map[y][x];
-      if(desk) container.appendChild(createDeskElement(desk));
+      if (desk) container.appendChild(createDeskElement(desk));
       else {
         const empty = document.createElement("div");
-        empty.className="empty-cell";
+        empty.className = "empty-cell";
         empty.dataset.x = x;
         empty.dataset.y = y;
-      
-        // 空席セルにも DnD イベントを設定
+
+        // 空席セルに drop 対応
         empty.addEventListener("dragover", e => e.preventDefault());
         empty.addEventListener("drop", e => {
           e.preventDefault();
           const fromId = e.dataTransfer.getData("id");
           const fromDesk = desks.find(d => d.id === fromId);
           if (!fromDesk) return;
-          // 座標を空席セルに移動
-          fromDesk.x = parseInt(empty.dataset.x,10);
-          fromDesk.y = parseInt(empty.dataset.y,10);
+          fromDesk.x = parseInt(empty.dataset.x, 10);
+          fromDesk.y = parseInt(empty.dataset.y, 10);
           save();
           render();
         });
-      
+
         container.appendChild(empty);
       }
     }
   }
 
-  createResizeBars();
+  createGapBars();
 }
 
 /* --- デスク要素作成 --- */
-function createDeskElement(desk){
+function createDeskElement(desk) {
   const div = document.createElement("div");
-  div.className=`desk ${desk.orientation}`;
-  div.draggable=true;
-  div.dataset.id=desk.id;
+  div.className = `desk ${desk.orientation}`;
+  div.draggable = true;
+  div.dataset.id = desk.id;
 
-  div.style.gridColumn = desk.x+1;
-  div.style.gridRow = desk.y+1;
+  div.style.gridColumn = desk.x + 1;
+  div.style.gridRow = desk.y + 1;
 
-  div.innerHTML=`
+  div.innerHTML = `
     <div class="desk-content">
       <strong>${desk.label}</strong><br>
       PC: ${desk.pc}<br>
@@ -100,9 +104,9 @@ function createDeskElement(desk){
     <button class="rotate-btn">↻</button>
   `;
 
-  div.querySelector(".rotate-btn").addEventListener("click",e=>{
+  div.querySelector(".rotate-btn").addEventListener("click", e => {
     e.stopPropagation();
-    desk.orientation = desk.orientation==="horizontal"?"vertical":"horizontal";
+    desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
     save();
     render();
   });
@@ -112,111 +116,99 @@ function createDeskElement(desk){
 }
 
 /* --- DnD --- */
-function addDnD(el){
-  el.addEventListener("dragstart",e=>{
-    e.dataTransfer.setData("id",el.dataset.id);
+function addDnD(el) {
+  el.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("id", el.dataset.id);
   });
 
-  el.addEventListener("dragover",e=>e.preventDefault());
-  el.addEventListener("drop",e=>{
+  el.addEventListener("dragover", e => e.preventDefault());
+  el.addEventListener("drop", e => {
     e.preventDefault();
     const fromId = e.dataTransfer.getData("id");
-    const fromDesk = desks.find(d=>d.id===fromId);
+    const fromDesk = desks.find(d => d.id === fromId);
 
     const toDeskId = el.dataset.id;
-    if(toDeskId){
-      const toDesk = desks.find(d=>d.id===toDeskId);
-      [fromDesk.x,toDesk.x] = [toDesk.x,fromDesk.x];
-      [fromDesk.y,toDesk.y] = [toDesk.y,fromDesk.y];
-    } else if(el.classList.contains("empty-cell")){
-      fromDesk.x = parseInt(el.dataset.x,10);
-      fromDesk.y = parseInt(el.dataset.y,10);
+    if (toDeskId) {
+      const toDesk = desks.find(d => d.id === toDeskId);
+      [fromDesk.x, toDesk.x] = [toDesk.x, fromDesk.x];
+      [fromDesk.y, toDesk.y] = [toDesk.y, fromDesk.y];
+    } else if (el.classList.contains("empty-cell")) {
+      fromDesk.x = parseInt(el.dataset.x, 10);
+      fromDesk.y = parseInt(el.dataset.y, 10);
     }
     save();
     render();
   });
 }
 
-/* --- グリッドリサイズバー --- */
-function createResizeBars(){
-  document.querySelectorAll(".resize-col, .resize-row").forEach(b=>b.remove());
+/* --- 行間・列間バー --- */
+function createGapBars() {
+  document.querySelectorAll(".resize-col, .resize-row").forEach(b => b.remove());
 
   // 列バー
-  for(let i=0;i<maxX-1;i++){
+  for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
-    bar.className="resize-col";
-    bar.dataset.col=i; // 左側の列番号
-    bar.style.left = colSizes.slice(0,i+1).reduce((a,b)=>a+b,0)+"px";
-    bar.addEventListener("mousedown",e=>startColResize(e,i));
+    bar.className = "resize-col";
+    bar.style.left = (deskWidth + colGap) * (i + 1) - colGap / 2 + "px";
+    bar.addEventListener("mousedown", e => startColGapResize(e));
     container.appendChild(bar);
   }
 
   // 行バー
-  for(let i=0;i<maxY-1;i++){
+  for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
-    bar.className="resize-row";
-    bar.dataset.row=i;
-    bar.style.top = rowSizes.slice(0,i+1).reduce((a,b)=>a+b,0)+"px";
-    bar.addEventListener("mousedown",e=>startRowResize(e,i));
+    bar.className = "resize-row";
+    bar.style.top = (deskHeight + rowGap) * (i + 1) - rowGap / 2 + "px";
+    bar.addEventListener("mousedown", e => startRowGapResize(e));
     container.appendChild(bar);
   }
 }
 
-function startColResize(e,colIndex){
+function startColGapResize(e) {
   e.preventDefault();
   const startX = e.clientX;
-  const startWidth = colSizes[colIndex];
+  const startGap = colGap;
 
-  function onMove(ev){
-    const delta = ev.clientX - startX;
-    colSizes[colIndex] = Math.max(40,startWidth + delta);
-    container.style.gridTemplateColumns = colSizes.map(v=>v+"px").join(" ");
+  function onMove(ev) {
+    colGap = Math.max(0, startGap + (ev.clientX - startX));
+    container.style.columnGap = colGap + "px";
+  }
+  function onUp() {
+    localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
   }
 
-  function onUp(){
-    save();
-    render();
-    window.removeEventListener("mousemove",onMove);
-    window.removeEventListener("mouseup",onUp);
-  }
-
-  window.addEventListener("mousemove",onMove);
-  window.addEventListener("mouseup",onUp);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
 }
 
-function startRowResize(e,rowIndex){
+function startRowGapResize(e) {
   e.preventDefault();
   const startY = e.clientY;
-  const startHeight = rowSizes[rowIndex];
+  const startGap = rowGap;
 
-  function onMove(ev){
-    const delta = ev.clientY - startY;
-    rowSizes[rowIndex] = Math.max(40,startHeight+delta);
-    container.style.gridTemplateRows = rowSizes.map(v=>v+"px").join(" ");
+  function onMove(ev) {
+    rowGap = Math.max(0, startGap + (ev.clientY - startY));
+    container.style.rowGap = rowGap + "px";
+  }
+  function onUp() {
+    localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
   }
 
-  function onUp(){
-    save();
-    render();
-    window.removeEventListener("mousemove",onMove);
-    window.removeEventListener("mouseup",onUp);
-  }
-
-  window.addEventListener("mousemove",onMove);
-  window.addEventListener("mouseup",onUp);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
 }
 
 /* --- 設定UI --- */
-document.getElementById("applySize").addEventListener("click",()=>{
-  const newX = parseInt(document.getElementById("maxX").value,10);
-  const newY = parseInt(document.getElementById("maxY").value,10);
-  if(newX>0 && newY>0){
+document.getElementById("applySize").addEventListener("click", () => {
+  const newX = parseInt(document.getElementById("maxX").value, 10);
+  const newY = parseInt(document.getElementById("maxY").value, 10);
+  if (newX > 0 && newY > 0) {
     maxX = newX;
     maxY = newY;
-
-    while(colSizes.length<maxX) colSizes.push(160);
-    while(rowSizes.length<maxY) rowSizes.push(160);
-
     render();
   }
 });
