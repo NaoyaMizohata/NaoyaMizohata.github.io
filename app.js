@@ -296,15 +296,43 @@ function addDeskAt(x, y) {
   render();
 }
 
-/* --- デスク削除 --- */
-document.getElementById("delete-edit").onclick = () => {
-  if (!editingDeskId) return;
-  if (!confirm("このデスクを削除しますか？")) return;
+/* ---------- edit modal ---------- */
+const modal = document.getElementById("edit-modal");
+const labelInput = document.getElementById("edit-label");
+const pcInput = document.getElementById("edit-pc");
+const userInput = document.getElementById("edit-user");
 
+function openEditModal(desk) {
+  editingDeskId = desk.id;
+  labelInput.value = desk.label;
+  pcInput.value = desk.pc;
+  userInput.value = desk.user;
+  modal.style.display = "flex";
+}
+
+document.getElementById("save-edit").onclick = () => {
+  const desk = desks.find(d => d.id === editingDeskId);
+  if (!desk) return;
+  desk.label = labelInput.value;
+  desk.pc = pcInput.value;
+  desk.user = userInput.value;
+  closeModal();
+  render();
+};
+
+document.getElementById("delete-edit").onclick = () => {
+  if (!confirm("削除しますか？")) return;
   desks = desks.filter(d => d.id !== editingDeskId);
   closeModal();
   render();
 };
+
+document.getElementById("cancel-edit").onclick = closeModal;
+
+function closeModal() {
+  modal.style.display = "none";
+  editingDeskId = null;
+}
 
 /* --- 初期ロード --- */
 loadDesks();
