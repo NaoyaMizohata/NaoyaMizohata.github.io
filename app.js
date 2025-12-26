@@ -110,7 +110,16 @@ function createDeskElement(desk) {
       PC: ${desk.pc}<br>
       ${desk.user}
     </div>
-    <button class="rotate-btn">↻</button>
+    <button class="rotate-btn" style="
+      position:absolute;
+      top:0;
+      left:0;
+      z-index:10;
+      width:24px;
+      height:24px;
+      padding:0;
+      margin:0;
+    ">↻</button>
   `;
 
   div.querySelector(".rotate-btn").addEventListener("click", e => {
