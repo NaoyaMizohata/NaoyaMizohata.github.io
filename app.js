@@ -330,7 +330,6 @@ document.getElementById("delete-edit").onclick = () => {
 document.getElementById("cancel-edit").onclick = closeModal;
 
 function closeModal() {
-  modal.style.display = "none";
   editingDeskId = null;
 }
 
