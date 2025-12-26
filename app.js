@@ -28,6 +28,8 @@ async function loadDesks() {
 function normalizeDesk(desk, index = 0) {
   return {
     orientation: "horizontal",
+    alignX: "left",
+    alignY: "top",
     x: index % maxX,
     y: Math.floor(index / maxX),
     id: desk.id || `desk${index}`,
@@ -42,23 +44,19 @@ function normalizeDesk(desk, index = 0) {
 function render() {
   container.innerHTML = "";
 
-  // grid サイズ設定
   container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
   container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
 
-  // container 幅・高さを desk サイズの合計で決定（gap は CSS に任せる）
   const totalWidth = colSizes.reduce((a, b) => a + b, 0);
   const totalHeight = rowSizes.reduce((a, b) => a + b, 0);
   container.style.width = totalWidth + "px";
   container.style.height = totalHeight + "px";
 
-  // grid 用マップ
   const map = Array.from({ length: maxY }, () => Array(maxX).fill(null));
   desks.forEach(d => {
     if (d.x < maxX && d.y < maxY) map[d.y][d.x] = d;
   });
 
-  // セル描画
   for (let y = 0; y < maxY; y++) {
     for (let x = 0; x < maxX; x++) {
       const desk = map[y][x];
@@ -107,6 +105,9 @@ function createDeskElement(desk) {
     div.style.height = deskWidth + "px";
   }
 
+  div.style.justifyContent = desk.alignX === "right" ? "flex-end" : "flex-start";
+  div.style.alignItems = desk.alignY === "bottom" ? "flex-end" : "flex-start";
+
   div.innerHTML = `
     <div class="desk-content">
       <strong>${desk.label}</strong><br>
@@ -114,11 +115,28 @@ function createDeskElement(desk) {
       ${desk.user}
     </div>
     <button class="rotate-btn">↻</button>
+    <button class="flip-x-btn">↔</button>
+    <button class="flip-y-btn">↕</button>
   `;
 
+  // 回転
   div.querySelector(".rotate-btn").addEventListener("click", e => {
     e.stopPropagation();
     desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
+    render();
+  });
+
+  // 左右入れ替え
+  div.querySelector(".flip-x-btn").addEventListener("click", e => {
+    e.stopPropagation();
+    desk.alignX = desk.alignX === "left" ? "right" : "left";
+    render();
+  });
+
+  // 上下入れ替え
+  div.querySelector(".flip-y-btn").addEventListener("click", e => {
+    e.stopPropagation();
+    desk.alignY = desk.alignY === "top" ? "bottom" : "top";
     render();
   });
 
