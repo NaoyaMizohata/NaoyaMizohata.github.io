@@ -4,67 +4,79 @@ body {
 }
 
 #desk-container {
-  display: grid;
-  gap: 10px 10px; /* rowGap columnGap */
   position: relative;
-  /* 背景色削除で範囲外は透明 */
+  background: #e0e0e0; /* 背景色 */
 }
 
+/* デスク */
 .desk {
-  width: 140px;
-  height: 70px;
   border: 1px solid #333;
-  background: #fff; /* デスクは白背景 */
+  background: #fff; /* 白に変更 */
   cursor: grab;
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 8px;
+  align-items: center;
   box-sizing: border-box;
+  padding: 8px;
 }
 
-.desk.horizontal {
-  flex-direction: row;
-}
-
-.desk.vertical {
-  flex-direction: column;
-}
-
+/* デスク内テキストは常に中央 */
 .desk-content {
-  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
+  font-size: 13px;
+  pointer-events: none; /* ボタン以外はイベント無効 */
 }
 
-.rotate-btn {
+/* ボタン */
+.rotate-btn, .flip-x-btn, .flip-y-btn {
+  position: absolute;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   user-select: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 24px;
-  height: 24px;
+  padding: 0;
 }
 
-.rotate-btn:hover {
+/* 回転 ↻ 左上 */
+.rotate-btn {
+  top: 2px;
+  left: 2px;
+}
+
+/* 左右 ↔ 回転アイコン右 */
+.flip-x-btn {
+  top: 2px;
+  left: 24px;
+}
+
+/* 上下 ↕ 回転アイコン下 */
+.flip-y-btn {
+  top: 24px;
+  left: 2px;
+}
+
+.rotate-btn:hover, .flip-x-btn:hover, .flip-y-btn:hover {
   opacity: 0.6;
 }
 
+/* 空セル */
 .empty-cell {
   border: 1px dashed #aaa;
-  background: #f0f0f0; /* 空席セルだけ灰色 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: #f0f0f0;
+  position: absolute;
+  box-sizing: border-box;
 }
 
+/* 行・列リサイズバー */
 .resize-col, .resize-row {
   position: absolute;
-  z-index: 10;
+  z-index: 20;
   background: transparent; /* 完全透明 */
 }
 
