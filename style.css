@@ -1,72 +1,102 @@
 body {
   font-family: sans-serif;
-  padding: 20px;
+  margin: 20px;
 }
 
 #desk-container {
-  display: grid;
-  gap: 10px 10px; /* rowGap columnGap */
   position: relative;
-  /* 背景色削除で範囲外は透明 */
+  margin-top: 20px;
 }
 
+/* デスク */
 .desk {
-  width: 140px;
-  height: 70px;
   border: 1px solid #333;
-  background: #fff; /* デスクは白背景 */
-  cursor: grab;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
+  background: #fff;
   box-sizing: border-box;
+  cursor: grab;
+  position: absolute;
 }
 
-.desk.horizontal {
-  flex-direction: row;
-}
-
-.desk.vertical {
-  flex-direction: column;
+.desk:active {
+  cursor: grabbing;
 }
 
 .desk-content {
-  font-size: 13px;
   text-align: center;
+  user-select: none;
+  font-size: 13px;
 }
 
+/* 回転ボタン */
 .rotate-btn {
-  background: none;
+  position: absolute;
+  top: 2px;
+  left: 2px;
   border: none;
+  background: none;
   cursor: pointer;
   font-size: 18px;
-  line-height: 1;
-  user-select: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 24px;
-  height: 24px;
 }
 
-.rotate-btn:hover {
-  opacity: 0.6;
-}
-
+/* 空きセル */
 .empty-cell {
-  border: 1px dashed #aaa;
-  background: #f0f0f0; /* 空席セルだけ灰色 */
+  position: absolute;
+  border: 1px dashed #ccc;
+  background: #f0f0f0;
+  box-sizing: border-box;
+}
+
+/* 空きセル追加ボタン */
+.add-desk-btn {
+  opacity: 0;
+  transition: opacity 0.15s;
+  border: none;
+  background: #4caf50;
+  color: white;
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.empty-cell:hover .add-desk-btn {
+  opacity: 1;
+}
+
+/* 行・列リサイズバー */
+.resize-col, .resize-row {
+  position: absolute;
+  background: transparent;
+  z-index: 20;
+}
+
+.resize-col { cursor: col-resize; width: 10px; }
+.resize-row { cursor: row-resize; height: 10px; }
+
+/* 編集モーダル */
+#edit-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
 }
 
-.resize-col, .resize-row {
-  position: absolute;
-  z-index: 10;
-  background: transparent; /* 完全透明 */
+#edit-modal .modal-content {
+  background: #fff;
+  padding: 16px;
+  width: 280px;
+  border-radius: 6px;
 }
 
-.resize-col { cursor: col-resize; }
-.resize-row { cursor: row-resize; }
+#delete-edit {
+  margin-left: 8px;
+  color: red;
+}
