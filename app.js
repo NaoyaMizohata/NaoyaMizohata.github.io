@@ -159,6 +159,7 @@ function createResizeBars() {
     bar.dataset.col = i;
     bar.style.width = colSizes[i] + "px";
     bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
+    bar.style.background = "transparent"; // 完全透明
     bar.addEventListener("mousedown", e => startColResize(e, i));
     container.appendChild(bar);
   }
@@ -169,6 +170,7 @@ function createResizeBars() {
     bar.dataset.row = i;
     bar.style.height = rowSizes[i] + "px";
     bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
+    bar.style.background = "transparent"; // 完全透明
     bar.addEventListener("mousedown", e => startRowResize(e, i));
     container.appendChild(bar);
   }
@@ -181,7 +183,7 @@ function startColResize(e, colIndex) {
   const startWidth = colSizes[colIndex];
 
   function onMove(ev) {
-    colSizes[colIndex] = Math.max(40, startWidth + (ev.clientX - startX));
+    colSizes[colIndex] = Math.max(30, startWidth + (ev.clientX - startX)); // 最小幅30px
     container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
     updateColBars();
   }
@@ -203,3 +205,64 @@ function updateColBars() {
     b.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
   });
 }
+
+/* --- 行幅変更 --- */
+function startRowResize(e, rowIndex) {
+  e.preventDefault();
+  const startY = e.clientY;
+  const startHeight = rowSizes[rowIndex];
+
+  function onMove(ev) {
+    rowSizes[rowIndex] = Math.max(30, startHeight + (ev.clientY - startY)); // 最小高さ30px
+    container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
+    updateRowBars();
+  }
+
+  function onUp() {
+    save();
+    window.removeEventListener("mousemove", onMove);
+    window.removeEventListener("mouseup", onUp);
+  }
+
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+}
+
+function updateRowBars() {
+  document.querySelectorAll(".resize-row").forEach(b => {
+    const i = parseInt(b.dataset.row, 10);
+    b.style.height = rowSizes[i] + "px";
+    b.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
+  });
+}
+
+/* --- 設定UI --- */
+document.getElementById("applySize").addEventListener("click", () => {
+  const newX = parseInt(document.getElementById("maxX").value, 10);
+  const newY = parseInt(document.getElementById("maxY").value, 10);
+  if (newX > 0 && newY > 0) {
+    maxX = newX;
+    maxY = newY;
+
+    while (colSizes.length < maxX) colSizes.push(deskWidth);
+    while (rowSizes.length < maxY) rowSizes.push(deskHeight);
+
+    render();
+  }
+});
+
+/* --- 初期化ボタン --- */
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!confirm("本当に保存データを初期化しますか？")) return;
+
+  localStorage.removeItem("desks");
+  localStorage.removeItem("gridSizes");
+
+  colSizes = Array(maxX).fill(deskWidth);
+  rowSizes = Array(maxY).fill(deskHeight);
+  desks = desks.map(normalizeDesk);
+  render();
+});
+
+/* --- 初期ロード --- */
+loadDesks();
