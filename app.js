@@ -307,7 +307,6 @@ function openEditModal(desk) {
   labelInput.value = desk.label;
   pcInput.value = desk.pc;
   userInput.value = desk.user;
-  modal.style.display = "flex";
 }
 
 document.getElementById("save-edit").onclick = () => {
