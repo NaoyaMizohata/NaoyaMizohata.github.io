@@ -316,14 +316,12 @@ document.getElementById("save-edit").onclick = () => {
   desk.pc = pcInput.value;
   desk.user = userInput.value;
   closeModal();
-  render();
 };
 
 document.getElementById("delete-edit").onclick = () => {
   if (!confirm("削除しますか？")) return;
   desks = desks.filter(d => d.id !== editingDeskId);
   closeModal();
-  render();
 };
 
 document.getElementById("cancel-edit").onclick = closeModal;
@@ -333,6 +331,7 @@ function closeModal() {
   labelInput.value = null;
   pcInput.value = null;
   userInput.value = null;
+  render();
 }
 
 /* --- 初期ロード --- */
