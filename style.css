@@ -51,3 +51,14 @@
 .rotate-btn:hover {
   opacity: 0.6;
 }
+
+/* 空席セル */
+.empty-cell {
+  border: 1px dashed #aaa;
+  background: #f0f0f0;
+  width: 140px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
