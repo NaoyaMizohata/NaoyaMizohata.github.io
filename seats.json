@@ -3,18 +3,21 @@
     "id": "desk-1",
     "label": "デスク1",
     "pc": "PC-01",
-    "user": "山田"
+    "user": "山田",
+    "rotation": 0
   },
   {
     "id": "desk-2",
     "label": "デスク2",
     "pc": "PC-02",
-    "user": "佐藤"
+    "user": "佐藤",
+    "rotation": 0
   },
   {
     "id": "desk-3",
     "label": "デスク3",
     "pc": "PC-03",
-    "user": "鈴木"
+    "user": "鈴木",
+    "rotation": 0
   }
 ]
