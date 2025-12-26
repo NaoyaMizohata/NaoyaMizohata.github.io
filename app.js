@@ -90,16 +90,15 @@ function createDeskElement(desk) {
 
   div.style.gridColumn = desk.x + 1;
   div.style.gridRow = desk.y + 1;
-  div.style.width = deskWidth + "px";
-  div.style.height = deskHeight + "px";
   div.style.position = "relative";
 
-  // transform 回転で縦向きにする
-  if (desk.orientation === "vertical") {
-    div.style.transform = "rotate(90deg)";
-    div.style.transformOrigin = "center";
+  // 縦横に応じて width / height を設定
+  if (desk.orientation === "horizontal") {
+    div.style.width = deskWidth + "px";
+    div.style.height = deskHeight + "px";
   } else {
-    div.style.transform = "none";
+    div.style.width = deskHeight + "px";
+    div.style.height = deskWidth + "px";
   }
 
   div.innerHTML = `
@@ -152,7 +151,6 @@ function addDnD(el) {
 function createResizeBars() {
   document.querySelectorAll(".resize-col, .resize-row").forEach(b => b.remove());
 
-  // 列バー
   for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-col";
@@ -168,7 +166,6 @@ function createResizeBars() {
     container.appendChild(bar);
   }
 
-  // 行バー
   for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-row";
@@ -185,7 +182,7 @@ function createResizeBars() {
   }
 }
 
-/* --- 列幅変更 --- */
+/* --- 列幅・行幅変更 --- */
 function startColResize(e, colIndex) {
   e.preventDefault();
   const startX = e.clientX;
@@ -214,7 +211,6 @@ function updateColBars() {
   });
 }
 
-/* --- 行幅変更 --- */
 function startRowResize(e, rowIndex) {
   e.preventDefault();
   const startY = e.clientY;
