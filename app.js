@@ -6,8 +6,11 @@ let maxY = 4;
 const deskWidth = 140;
 const deskHeight = 70;
 
-let colSizes = Array(maxX).fill(deskWidth);
-let rowSizes = Array(maxY).fill(deskHeight);
+// グリッドセル初期サイズは机の幅・高さの大きいほう
+const initialCellSize = Math.max(deskWidth, deskHeight);
+
+let colSizes = Array(maxX).fill(initialCellSize);
+let rowSizes = Array(maxY).fill(initialCellSize);
 
 /* --- 初期読み込み --- */
 async function loadDesks() {
