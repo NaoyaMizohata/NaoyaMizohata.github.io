@@ -2,48 +2,76 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>座席管理システム</title>
 <style>
+  body {
+    font-family: sans-serif;
+    margin: 20px;
+  }
+
   #desk-container {
-    display: grid;
-    position: relative;
     border: 1px solid #ccc;
-  }
-  .desk, .empty-cell {
-    border: 1px solid #333;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     position: relative;
+    margin-top: 20px;
+    background-color: #f8f8f8;
   }
-  .desk.vertical .desk-content { writing-mode: vertical-rl; text-orientation: mixed; }
-  .desk-content { text-align: center; }
+
+  .desk {
+    border: 1px solid #333;
+    background-color: #e0e0ff;
+    box-sizing: border-box;
+    cursor: grab;
+  }
+
+  .desk:active {
+    cursor: grabbing;
+  }
+
+  .desk-content {
+    text-align: center;
+    user-select: none;
+  }
+
   .rotate-btn {
-    position: absolute;
-    top: 2px;
-    right: 2px;
+    border: none;
+    background: #88f;
+    color: #fff;
     cursor: pointer;
+    font-weight: bold;
+    user-select: none;
   }
+
+  .empty-cell {
+    border: 1px dashed #ccc;
+    box-sizing: border-box;
+  }
+
   .resize-col, .resize-row {
-    position: absolute;
-    background: rgba(0,0,0,0.2);
-    z-index: 10;
-    cursor: col-resize;
+    /* 背景は透明にしてマウス操作だけ */
+    background: transparent;
   }
-  .resize-row { cursor: row-resize; }
 </style>
 </head>
 <body>
+
+<h2>座席管理システム</h2>
+
 <div>
-  <label>列数: <input type="number" id="maxX" value="6"></label>
-  <label>行数: <input type="number" id="maxY" value="4"></label>
+  <label>列数: <input type="number" id="maxX" value="6" min="1"></label>
+  <label>行数: <input type="number" id="maxY" value="4" min="1"></label>
   <button id="applySize">適用</button>
-  <button id="resetBtn">初期化</button>
+</div>
+
+<div style="margin-top:10px;">
+  <button id="exportBtn">JSON 書き出し</button>
+  <input type="file" id="importInput" accept=".json">
 </div>
 
 <div id="desk-container"></div>
 
+<!-- JS -->
 <script src="app.js"></script>
+
 </body>
 </html>
