@@ -153,24 +153,34 @@ function addDnD(el) {
 function createResizeBars() {
   document.querySelectorAll(".resize-col, .resize-row").forEach(b => b.remove());
 
+  // 列バー
   for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-col";
     bar.dataset.col = i;
-    bar.style.width = colSizes[i] + "px";
-    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
-    bar.style.background = "transparent"; // 完全透明
+    bar.style.width = "10px"; // 固定幅
+    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px"; // 中心位置
+    bar.style.top = "0";
+    bar.style.height = container.offsetHeight + "px";
+    bar.style.background = "transparent";
+    bar.style.position = "absolute";
+    bar.style.cursor = "col-resize";
     bar.addEventListener("mousedown", e => startColResize(e, i));
     container.appendChild(bar);
   }
 
+  // 行バー
   for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-row";
     bar.dataset.row = i;
-    bar.style.height = rowSizes[i] + "px";
-    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
-    bar.style.background = "transparent"; // 完全透明
+    bar.style.height = "10px"; // 固定高さ
+    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px"; // 中心位置
+    bar.style.left = "0";
+    bar.style.width = container.offsetWidth + "px";
+    bar.style.background = "transparent";
+    bar.style.position = "absolute";
+    bar.style.cursor = "row-resize";
     bar.addEventListener("mousedown", e => startRowResize(e, i));
     container.appendChild(bar);
   }
@@ -201,8 +211,7 @@ function startColResize(e, colIndex) {
 function updateColBars() {
   document.querySelectorAll(".resize-col").forEach(b => {
     const i = parseInt(b.dataset.col, 10);
-    b.style.width = colSizes[i] + "px";
-    b.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
+    b.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
   });
 }
 
@@ -231,8 +240,7 @@ function startRowResize(e, rowIndex) {
 function updateRowBars() {
   document.querySelectorAll(".resize-row").forEach(b => {
     const i = parseInt(b.dataset.row, 10);
-    b.style.height = rowSizes[i] + "px";
-    b.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + "px";
+    b.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
   });
 }
 
