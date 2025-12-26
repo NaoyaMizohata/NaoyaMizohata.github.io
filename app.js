@@ -324,7 +324,7 @@ document.getElementById("delete-edit").onclick = () => {
   closeModal();
 };
 
-document.getElementById("cancel-edit").onclick = closeModal;
+document.getElementById("cancel-edit").onclick = closeModal();
 
 function closeModal() {
   editingDeskId = null;
