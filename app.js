@@ -2,17 +2,10 @@ const container = document.getElementById("desk-container");
 let desks = [];
 let maxX = 6;
 let maxY = 4;
-let colSizes = Array(maxX).fill(160); // px
-let rowSizes = Array(maxY).fill(160); // px
+let colSizes = Array(maxX).fill(160);
+let rowSizes = Array(maxY).fill(160);
 
-/* グリッド情報 */
-function updateGridTemplate() {
-  container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
-  container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
-}
-
-
-/* 初期データ読み込み */
+/* --- 初期読み込み --- */
 async function loadDesks() {
   const saved = localStorage.getItem("desks");
   if (saved) {
@@ -21,113 +14,63 @@ async function loadDesks() {
     const res = await fetch("seats.json");
     desks = (await res.json()).map(normalizeDesk);
   }
+
+  // 幅・高さをLocalStorageから読み込む
+  const savedSizes = JSON.parse(localStorage.getItem("gridSizes") || "{}");
+  if (savedSizes.colSizes) colSizes = savedSizes.colSizes;
+  if (savedSizes.rowSizes) rowSizes = savedSizes.rowSizes;
+
   render();
 }
 
-function normalizeDesk(desk, index) {
+function normalizeDesk(desk, index=0) {
   return {
     orientation: "horizontal",
-    x: index % 6,
-    y: Math.floor(index / 6),
+    x: index % maxX,
+    y: Math.floor(index / maxX),
     ...desk
   };
 }
 
-/* 描画 */
+/* --- 保存 --- */
+function save() {
+  localStorage.setItem("desks", JSON.stringify(desks));
+  localStorage.setItem("gridSizes", JSON.stringify({ colSizes, rowSizes }));
+}
+
+/* --- render --- */
 function render() {
   container.innerHTML = "";
-  container.style.gridTemplateColumns = `repeat(${maxX}, 160px)`;
-  container.style.gridAutoRows = `160px`;
 
-  // 座席配置マップ作成
-  const map = Array.from({ length: maxY }, () =>
-    Array.from({ length: maxX }, () => null)
-  );
+  // グリッドテンプレート
+  container.style.gridTemplateColumns = colSizes.map(v=>v+"px").join(" ");
+  container.style.gridTemplateRows = rowSizes.map(v=>v+"px").join(" ");
 
+  // マップ作成
+  const map = Array.from({ length: maxY }, ()=>Array(maxX).fill(null));
   desks.forEach(d => {
     if (d.x < maxX && d.y < maxY) map[d.y][d.x] = d;
   });
 
-  // 描画ループ
-  for (let y = 0; y < maxY; y++) {
-    for (let x = 0; x < maxX; x++) {
+  // 描画
+  for (let y=0; y<maxY; y++) {
+    for (let x=0; x<maxX; x++) {
       const desk = map[y][x];
-      if (desk) {
-        const div = createDeskElement(desk);
-        container.appendChild(div);
-      } else {
+      if (desk) container.appendChild(createDeskElement(desk));
+      else {
         const empty = document.createElement("div");
         empty.className = "empty-cell";
         empty.dataset.x = x;
         empty.dataset.y = y;
-
-        // 空セルへのドロップ対応
-        empty.addEventListener("dragover", e => e.preventDefault());
-        empty.addEventListener("drop", e => {
-          e.preventDefault();
-          const fromId = e.dataTransfer.getData("id");
-          const fromDesk = desks.find(d => d.id === fromId);
-          [fromDesk.x, fromDesk.y] = [x, y];
-          save();
-          render();
-        });
-
         container.appendChild(empty);
       }
     }
   }
+
+  createResizeBars();
 }
 
-/* ドラッグ＆ドロップ */
-function addDnD(el) {
-  el.addEventListener("dragstart", e => {
-    e.dataTransfer.setData("id", el.dataset.id);
-  });
-
-  el.addEventListener("dragover", e => e.preventDefault());
-
-  el.addEventListener("drop", e => {
-    e.preventDefault();
-    const fromId = e.dataTransfer.getData("id");
-    const fromDesk = desks.find(d => d.id === fromId);
-
-    // ドロップ先が空席セルかデスクかを判定
-    const toDeskId = el.dataset.id;
-
-    if (toDeskId) {
-      // デスク → デスク：座標をスワップ
-      const toDesk = desks.find(d => d.id === toDeskId);
-      [fromDesk.x, toDesk.x] = [toDesk.x, fromDesk.x];
-      [fromDesk.y, toDesk.y] = [toDesk.y, fromDesk.y];
-    } else if (el.classList.contains("empty-cell")) {
-      // デスク → 空席セル：座標を移動
-      fromDesk.x = parseInt(el.dataset.x, 10);
-      fromDesk.y = parseInt(el.dataset.y, 10);
-    }
-
-    save();
-    render();
-  });
-}
-
-/* 保存関数 */
-function save() {
-  localStorage.setItem("desks", JSON.stringify(desks));
-}
-
-/* 座席数設定イベント */
-document.getElementById("applySize").addEventListener("click", () => {
-  const newX = parseInt(document.getElementById("maxX").value, 10);
-  const newY = parseInt(document.getElementById("maxY").value, 10);
-
-  if (newX > 0 && newY > 0) {
-    maxX = newX;
-    maxY = newY;
-    render();
-  }
-});
-
-/* デスク作成関数 */
+/* --- デスク要素作成 --- */
 function createDeskElement(desk) {
   const div = document.createElement("div");
   div.className = `desk ${desk.orientation}`;
@@ -146,10 +89,9 @@ function createDeskElement(desk) {
     <button class="rotate-btn">↻</button>
   `;
 
-  div.querySelector(".rotate-btn").addEventListener("click", e => {
+  div.querySelector(".rotate-btn").addEventListener("click", e=>{
     e.stopPropagation();
-    desk.orientation =
-      desk.orientation === "horizontal" ? "vertical" : "horizontal";
+    desk.orientation = desk.orientation==="horizontal"?"vertical":"horizontal";
     save();
     render();
   });
@@ -158,66 +100,105 @@ function createDeskElement(desk) {
   return div;
 }
 
-/* リサイズバー */
-function createResizeBars() {
+/* --- DnD --- */
+function addDnD(el){
+  el.addEventListener("dragstart", e=>{
+    e.dataTransfer.setData("id", el.dataset.id);
+  });
+
+  el.addEventListener("dragover", e=>e.preventDefault());
+  el.addEventListener("drop", e=>{
+    e.preventDefault();
+    const fromId = e.dataTransfer.getData("id");
+    const fromDesk = desks.find(d=>d.id===fromId);
+
+    const toDeskId = el.dataset.id;
+    if(toDeskId){
+      const toDesk = desks.find(d=>d.id===toDeskId);
+      [fromDesk.x, toDesk.x] = [toDesk.x, fromDesk.x];
+      [fromDesk.y, toDesk.y] = [toDesk.y, fromDesk.y];
+    } else if(el.classList.contains("empty-cell")){
+      fromDesk.x = parseInt(el.dataset.x,10);
+      fromDesk.y = parseInt(el.dataset.y,10);
+    }
+    save();
+    render();
+  });
+}
+
+/* --- グリッドリサイズバー --- */
+function createResizeBars(){
+  // remove old bars
+  document.querySelectorAll(".resize-col, .resize-row").forEach(b=>b.remove());
+
   // 列バー
-  for (let i = 1; i < maxX; i++) {
+  for(let i=1;i<maxX;i++){
     const bar = document.createElement("div");
-    bar.className = "resize-col";
-    bar.style.left = colSizes.slice(0,i).reduce((a,b)=>a+b,0) + "px";
-    bar.addEventListener("mousedown", e => startColResize(e, i));
+    bar.className="resize-col";
+    bar.style.left = colSizes.slice(0,i).reduce((a,b)=>a+b,0)+"px";
+    bar.addEventListener("mousedown", e=>startColResize(e,i));
     container.appendChild(bar);
   }
 
   // 行バー
-  for (let i = 1; i < maxY; i++) {
+  for(let i=1;i<maxY;i++){
     const bar = document.createElement("div");
-    bar.className = "resize-row";
-    bar.style.top = rowSizes.slice(0,i).reduce((a,b)=>a+b,0) + "px";
-    bar.addEventListener("mousedown", e => startRowResize(e, i));
+    bar.className="resize-row";
+    bar.style.top = rowSizes.slice(0,i).reduce((a,b)=>a+b,0)+"px";
+    bar.addEventListener("mousedown", e=>startRowResize(e,i));
     container.appendChild(bar);
   }
 }
 
-/* リサイズバーのドラッグ処理 */
-function startColResize(e, index) {
+function startColResize(e,index){
   const startX = e.clientX;
   const startWidth = colSizes[index];
-
-  function onMouseMove(ev) {
+  function onMove(ev){
     const delta = ev.clientX - startX;
-    colSizes[index] = Math.max(40, startWidth + delta);
-    updateGridTemplate();
-    createResizeBars();
+    colSizes[index] = Math.max(40,startWidth+delta);
+    render();
   }
-
-  function onMouseUp() {
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
+  function onUp(){
+    save();
+    window.removeEventListener("mousemove",onMove);
+    window.removeEventListener("mouseup",onUp);
   }
-
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+  window.addEventListener("mousemove",onMove);
+  window.addEventListener("mouseup",onUp);
 }
 
-function startRowResize(e, index) {
+function startRowResize(e,index){
   const startY = e.clientY;
   const startHeight = rowSizes[index];
-
-  function onMouseMove(ev) {
+  function onMove(ev){
     const delta = ev.clientY - startY;
-    rowSizes[index] = Math.max(40, startHeight + delta);
-    updateGridTemplate();
-    createResizeBars();
+    rowSizes[index] = Math.max(40,startHeight+delta);
+    render();
   }
-
-  function onMouseUp() {
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
+  function onUp(){
+    save();
+    window.removeEventListener("mousemove",onMove);
+    window.removeEventListener("mouseup",onUp);
   }
-
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("mouseup", onMouseUp);
+  window.addEventListener("mousemove",onMove);
+  window.addEventListener("mouseup",onUp);
 }
 
+/* --- 設定UI --- */
+document.getElementById("applySize").addEventListener("click",()=>{
+  const newX = parseInt(document.getElementById("maxX").value,10);
+  const newY = parseInt(document.getElementById("maxY").value,10);
+  if(newX>0 && newY>0){
+    maxX = newX;
+    maxY = newY;
+
+    // 配列を拡張
+    while(colSizes.length<maxX) colSizes.push(160);
+    while(rowSizes.length<maxY) rowSizes.push(160);
+
+    render();
+  }
+});
+
+/* --- 初期ロード --- */
 loadDesks();
