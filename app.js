@@ -108,7 +108,7 @@ function render() {
 function createDeskElement(desk) {
   const div = document.createElement("div");
   div.className = "desk " + desk.orientation;
-  div.draggable = true;
+  div.draggable = false;
   div.dataset.id = desk.id;
 
   div.addEventListener("dblclick", (e) => {
