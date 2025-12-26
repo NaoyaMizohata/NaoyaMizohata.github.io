@@ -8,7 +8,7 @@ let maxY = 4;
 const deskWidth = 140;
 const deskHeight = 70;
 const initialColSize = deskWidth;
-const initialRowSize = deskWidth;
+const initialRowSize = deskHeight;
 
 let colSizes = Array(maxX).fill(initialColSize);
 let rowSizes = Array(maxY).fill(initialRowSize);
@@ -270,9 +270,9 @@ document.getElementById("applySize").addEventListener("click", () => {
     maxY = newY;
 
     colSizes = colSizes.slice(0, maxX);
-    while (colSizes.length < maxX) colSizes.push(initialColSize);
+    while (colSizes.length < maxX) colSizes.push(deskWidth);
     rowSizes = rowSizes.slice(0, maxY);
-    while (rowSizes.length < maxY) rowSizes.push(initialRowSize);
+    while (rowSizes.length < maxY) rowSizes.push(deskWidth);
 
     render();
   }
