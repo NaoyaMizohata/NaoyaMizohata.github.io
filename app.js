@@ -5,9 +5,12 @@ let maxY = 4;
 
 const deskWidth = 140;
 const deskHeight = 70;
-const initialCellSize = Math.max(deskWidth, deskHeight);
-let colSizes = Array(maxX).fill(initialCellSize);
-let rowSizes = Array(maxY).fill(initialCellSize);
+const initialColSize = deskWidth;
+const initialRowSize = deskHeight;
+
+let colSizes = Array(maxX).fill(initialColSize);
+let rowSizes = Array(maxY).fill(initialRowSize);
+
 const gapX = 10;
 const gapY = 10;
 
@@ -43,9 +46,9 @@ function render() {
   container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
   container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
 
-  // container の幅・高さを列・行幅に追従
-  const totalWidth = colSizes.reduce((a, b) => a + b, 0) + gapX * (maxX - 1);
-  const totalHeight = rowSizes.reduce((a, b) => a + b, 0) + gapY * (maxY - 1);
+  // container 幅・高さを desk サイズの合計で決定（gap は CSS に任せる）
+  const totalWidth = colSizes.reduce((a, b) => a + b, 0);
+  const totalHeight = rowSizes.reduce((a, b) => a + b, 0);
   container.style.width = totalWidth + "px";
   container.style.height = totalHeight + "px";
 
@@ -154,7 +157,7 @@ function createResizeBars(totalWidth, totalHeight) {
   for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-col";
-    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + i * gapX - 5 + "px";
+    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
     bar.style.top = 0;
     bar.style.height = totalHeight + "px";
     bar.addEventListener("mousedown", e => startColResize(e, i));
@@ -164,7 +167,7 @@ function createResizeBars(totalWidth, totalHeight) {
   for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-row";
-    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + i * gapY - 5 + "px";
+    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
     bar.style.left = 0;
     bar.style.width = totalWidth + "px";
     bar.addEventListener("mousedown", e => startRowResize(e, i));
@@ -245,11 +248,10 @@ document.getElementById("applySize").addEventListener("click", () => {
     maxX = newX;
     maxY = newY;
 
-    // colSizes / rowSizes を正確に調整
     colSizes = colSizes.slice(0, maxX);
-    while (colSizes.length < maxX) colSizes.push(initialCellSize);
+    while (colSizes.length < maxX) colSizes.push(initialColSize);
     rowSizes = rowSizes.slice(0, maxY);
-    while (rowSizes.length < maxY) rowSizes.push(initialCellSize);
+    while (rowSizes.length < maxY) rowSizes.push(initialRowSize);
 
     render();
   }
