@@ -8,11 +8,17 @@ const deskHeight = 70;
 const initialCellSize = Math.max(deskWidth, deskHeight);
 let colSizes = Array(maxX).fill(initialCellSize);
 let rowSizes = Array(maxY).fill(initialCellSize);
+const gapX = 10;
+const gapY = 10;
 
 /* --- 初期読み込み --- */
 async function loadDesks() {
-  const res = await fetch("seats.json");
-  desks = (await res.json()).map(normalizeDesk);
+  try {
+    const res = await fetch("seats.json");
+    desks = (await res.json()).map(normalizeDesk);
+  } catch {
+    desks = [];
+  }
   render();
 }
 
@@ -21,6 +27,10 @@ function normalizeDesk(desk, index = 0) {
     orientation: "horizontal",
     x: index % maxX,
     y: Math.floor(index / maxX),
+    id: desk.id || `desk${index}`,
+    label: desk.label || `Desk${index + 1}`,
+    pc: desk.pc || "",
+    user: desk.user || "",
     ...desk
   };
 }
@@ -33,9 +43,11 @@ function render() {
   container.style.gridTemplateColumns = colSizes.map(v => v + "px").join(" ");
   container.style.gridTemplateRows = rowSizes.map(v => v + "px").join(" ");
 
-  // grid 全体サイズ計算
-  const totalWidth = colSizes.reduce((a, b) => a + b, 0);
-  const totalHeight = rowSizes.reduce((a, b) => a + b, 0);
+  // container の幅・高さを列・行幅に追従
+  const totalWidth = colSizes.reduce((a, b) => a + b, 0) + gapX * (maxX - 1);
+  const totalHeight = rowSizes.reduce((a, b) => a + b, 0) + gapY * (maxY - 1);
+  container.style.width = totalWidth + "px";
+  container.style.height = totalHeight + "px";
 
   // grid 用マップ
   const map = Array.from({ length: maxY }, () => Array(maxX).fill(null));
@@ -80,7 +92,7 @@ function render() {
 /* --- デスク作成 --- */
 function createDeskElement(desk) {
   const div = document.createElement("div");
-  div.className = "desk";
+  div.className = "desk " + desk.orientation;
   div.draggable = true;
   div.dataset.id = desk.id;
 
@@ -91,9 +103,6 @@ function createDeskElement(desk) {
     div.style.width = deskHeight + "px";
     div.style.height = deskWidth + "px";
   }
-
-  div.style.position = "relative";
-  div.style.zIndex = 10;
 
   div.innerHTML = `
     <div class="desk-content">
@@ -145,7 +154,7 @@ function createResizeBars(totalWidth, totalHeight) {
   for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-col";
-    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
+    bar.style.left = colSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + i * gapX - 5 + "px";
     bar.style.top = 0;
     bar.style.height = totalHeight + "px";
     bar.addEventListener("mousedown", e => startColResize(e, i));
@@ -155,7 +164,7 @@ function createResizeBars(totalWidth, totalHeight) {
   for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-row";
-    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) - 5 + "px";
+    bar.style.top = rowSizes.slice(0, i + 1).reduce((a, b) => a + b, 0) + i * gapY - 5 + "px";
     bar.style.left = 0;
     bar.style.width = totalWidth + "px";
     bar.addEventListener("mousedown", e => startRowResize(e, i));
