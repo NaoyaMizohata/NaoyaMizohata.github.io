@@ -1,24 +1,26 @@
-body { 
+body {
   font-family: sans-serif;
   padding: 20px;
 }
 
 #desk-container {
+  display: grid;
+  gap: 10px 10px; /* rowGap columnGap */
   position: relative;
+  /* 背景色削除で範囲外は透明 */
 }
 
 .desk {
-  width: 140px;  
-  height: 70px;  
+  width: 140px;
+  height: 70px;
   border: 1px solid #333;
-  background: #fff;
+  background: #fff; /* デスクは白背景 */
   cursor: grab;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 8px;
   box-sizing: border-box;
-  position: absolute;
 }
 
 .desk.horizontal {
@@ -30,13 +32,8 @@ body {
 }
 
 .desk-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
   font-size: 13px;
-  pointer-events: none;
+  text-align: center;
 }
 
 .rotate-btn {
@@ -47,8 +44,8 @@ body {
   line-height: 1;
   user-select: none;
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 0;
+  left: 0;
   width: 24px;
   height: 24px;
 }
@@ -59,18 +56,16 @@ body {
 
 .empty-cell {
   border: 1px dashed #aaa;
-  background: #f0f0f0;
+  background: #f0f0f0; /* 空席セルだけ灰色 */
   display: flex;
   align-items: center;
   justify-content: center;
-  position: absolute;
-  box-sizing: border-box;
 }
 
 .resize-col, .resize-row {
   position: absolute;
-  z-index: 20;
-  background: transparent;
+  z-index: 10;
+  background: transparent; /* 完全透明 */
 }
 
 .resize-col { cursor: col-resize; }
