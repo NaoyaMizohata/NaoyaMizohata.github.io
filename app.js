@@ -328,9 +328,9 @@ document.getElementById("cancel-edit").onclick = closeModal();
 
 function closeModal() {
   editingDeskId = null;
-  labelInput.value = null;
-  pcInput.value = null;
-  userInput.value = null;
+  labelInput.value = "";
+  pcInput.value = "";
+  userInput.value = "";
   render();
 }
 
