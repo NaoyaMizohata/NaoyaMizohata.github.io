@@ -18,39 +18,32 @@ const gapY = 10;
 async function loadDesks() {
   try {
     const res = await fetch("seats.json");
-    desks = (await res.json()).map(normalizeDesk);
+    desks = (await res.json()).map((desk, index) => ({
+      orientation: "horizontal",
+      x: index % maxX,
+      y: Math.floor(index / maxX),
+      id: desk.id || `desk${index}`,
+      label: desk.label || `Desk${index + 1}`,
+      pc: desk.pc || "",
+      user: desk.user || "",
+      ...desk
+    }));
   } catch {
     desks = [];
   }
   render();
 }
 
-function normalizeDesk(desk, index = 0) {
-  return {
-    orientation: "horizontal",
-    anchorX: "left",
-    anchorY: "top",
-    x: index % maxX,
-    y: Math.floor(index / maxX),
-    id: desk.id || `desk${index}`,
-    label: desk.label || `Desk${index + 1}`,
-    pc: desk.pc || "",
-    user: desk.user || "",
-    ...desk
-  };
-}
-
 /* --- render --- */
 function render() {
   container.innerHTML = "";
-  container.style.position = "relative"; // 親を relative に
+  container.style.position = "relative";
 
-  // 背景セル（灰色）
+  // 背景セル
   for (let y = 0; y < maxY; y++) {
     for (let x = 0; x < maxX; x++) {
       const cell = document.createElement("div");
       cell.className = "empty-cell";
-      cell.style.position = "absolute";
       cell.style.left = colSizes.slice(0, x).reduce((a, b) => a + b, 0) + x * gapX + "px";
       cell.style.top  = rowSizes.slice(0, y).reduce((a, b) => a + b, 0) + y * gapY + "px";
       cell.style.width = colSizes[x] + "px";
@@ -69,13 +62,8 @@ function render() {
     const h = desk.orientation === "horizontal" ? deskHeight : deskWidth;
     div.style.width = w + "px";
     div.style.height = h + "px";
-    div.style.position = "absolute";
-
-    const cellLeft = colSizes.slice(0, desk.x).reduce((a, b) => a + b, 0) + desk.x * gapX;
-    const cellTop  = rowSizes.slice(0, desk.y).reduce((a, b) => a + b, 0) + desk.y * gapY;
-
-    div.style.left = desk.anchorX === "left" ? `${cellLeft}px` : `${cellLeft + colSizes[desk.x] - w}px`;
-    div.style.top  = desk.anchorY === "top"  ? `${cellTop}px`  : `${cellTop + rowSizes[desk.y] - h}px`;
+    div.style.left = colSizes.slice(0, desk.x).reduce((a, b) => a + b, 0) + desk.x * gapX + "px";
+    div.style.top  = rowSizes.slice(0, desk.y).reduce((a, b) => a + b, 0) + desk.y * gapY + "px";
 
     div.innerHTML = `
       <div class="desk-content">
@@ -84,28 +72,12 @@ function render() {
         ${desk.user}
       </div>
       <button class="rotate-btn">↻</button>
-      <button class="flip-x-btn">↔</button>
-      <button class="flip-y-btn">↕</button>
     `;
 
     // 回転
     div.querySelector(".rotate-btn").addEventListener("click", e => {
       e.stopPropagation();
       desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
-      render();
-    });
-
-    // 左右（セル内角）
-    div.querySelector(".flip-x-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      desk.anchorX = desk.anchorX === "left" ? "right" : "left";
-      render();
-    });
-
-    // 上下（セル内角）
-    div.querySelector(".flip-y-btn").addEventListener("click", e => {
-      e.stopPropagation();
-      desk.anchorY = desk.anchorY === "top" ? "bottom" : "top";
       render();
     });
 
@@ -200,7 +172,15 @@ function importJSON(event) {
       const data = JSON.parse(e.target.result);
       maxX = data.maxX; maxY = data.maxY;
       colSizes = data.colSizes; rowSizes = data.rowSizes;
-      desks = data.desks.map(normalizeDesk);
+      desks = data.desks.map((desk,index)=>({
+        orientation: desk.orientation || "horizontal",
+        x: desk.x,
+        y: desk.y,
+        id: desk.id || `desk${index}`,
+        label: desk.label || `Desk${index+1}`,
+        pc: desk.pc || "",
+        user: desk.user || ""
+      }));
       render();
     } catch(err){ alert("JSON読み込み失敗"); console.error(err);}
   };
