@@ -64,7 +64,6 @@ function render() {
         empty.dataset.x = x;
         empty.dataset.y = y;
 
-        // 空席セルに drop 対応
         empty.addEventListener("dragover", e => e.preventDefault());
         empty.addEventListener("drop", e => {
           e.preventDefault();
@@ -88,12 +87,25 @@ function render() {
 /* --- デスク要素作成 --- */
 function createDeskElement(desk) {
   const div = document.createElement("div");
-  div.className = `desk ${desk.orientation}`;
+  div.className = "desk";
   div.draggable = true;
   div.dataset.id = desk.id;
 
   div.style.gridColumn = desk.x + 1;
   div.style.gridRow = desk.y + 1;
+
+  // 幅・高さを縦横回転に応じて変更
+  if (desk.orientation === "horizontal") {
+    div.style.width = deskWidth + "px";
+    div.style.height = deskHeight + "px";
+    div.classList.add("horizontal");
+    div.classList.remove("vertical");
+  } else {
+    div.style.width = deskHeight + "px";
+    div.style.height = deskWidth + "px";
+    div.classList.add("vertical");
+    div.classList.remove("horizontal");
+  }
 
   div.innerHTML = `
     <div class="desk-content">
@@ -149,8 +161,10 @@ function createGapBars() {
   for (let i = 0; i < maxX - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-col";
-    bar.style.left = (deskWidth + colGap) * (i + 1) - colGap / 2 + "px";
-    bar.addEventListener("mousedown", e => startColGapResize(e));
+    bar.dataset.col = i;
+    bar.style.width = colGap + "px";
+    bar.style.left = deskWidth * (i + 1) + colGap * i + "px";
+    bar.addEventListener("mousedown", e => startColGapResize(e, bar));
     container.appendChild(bar);
   }
 
@@ -158,13 +172,15 @@ function createGapBars() {
   for (let i = 0; i < maxY - 1; i++) {
     const bar = document.createElement("div");
     bar.className = "resize-row";
-    bar.style.top = (deskHeight + rowGap) * (i + 1) - rowGap / 2 + "px";
-    bar.addEventListener("mousedown", e => startRowGapResize(e));
+    bar.dataset.row = i;
+    bar.style.height = rowGap + "px";
+    bar.style.top = deskHeight * (i + 1) + rowGap * i + "px";
+    bar.addEventListener("mousedown", e => startRowGapResize(e, bar));
     container.appendChild(bar);
   }
 }
 
-function startColGapResize(e) {
+function startColGapResize(e, bar) {
   e.preventDefault();
   const startX = e.clientX;
   const startGap = colGap;
@@ -172,7 +188,15 @@ function startColGapResize(e) {
   function onMove(ev) {
     colGap = Math.max(0, startGap + (ev.clientX - startX));
     container.style.columnGap = colGap + "px";
+
+    // バーの幅・位置を gap に同期
+    document.querySelectorAll(".resize-col").forEach(b => {
+      const i = parseInt(b.dataset.col, 10);
+      b.style.width = colGap + "px";
+      b.style.left = deskWidth * (i + 1) + colGap * i + "px";
+    });
   }
+
   function onUp() {
     localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
     window.removeEventListener("mousemove", onMove);
@@ -183,7 +207,7 @@ function startColGapResize(e) {
   window.addEventListener("mouseup", onUp);
 }
 
-function startRowGapResize(e) {
+function startRowGapResize(e, bar) {
   e.preventDefault();
   const startY = e.clientY;
   const startGap = rowGap;
@@ -191,7 +215,15 @@ function startRowGapResize(e) {
   function onMove(ev) {
     rowGap = Math.max(0, startGap + (ev.clientY - startY));
     container.style.rowGap = rowGap + "px";
+
+    // バーの高さ・位置を gap に同期
+    document.querySelectorAll(".resize-row").forEach(b => {
+      const i = parseInt(b.dataset.row, 10);
+      b.style.height = rowGap + "px";
+      b.style.top = deskHeight * (i + 1) + rowGap * i + "px";
+    });
   }
+
   function onUp() {
     localStorage.setItem("gridGap", JSON.stringify({ rowGap, colGap }));
     window.removeEventListener("mousemove", onMove);
