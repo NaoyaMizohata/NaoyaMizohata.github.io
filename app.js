@@ -108,13 +108,8 @@ function render() {
 function createDeskElement(desk) {
   const div = document.createElement("div");
   div.className = "desk " + desk.orientation;
-  div.draggable = false;
+  div.draggable = true;
   div.dataset.id = desk.id;
-
-  div.addEventListener("dblclick", (e) => {
-    e.stopPropagation();
-    openEditModal(desk);
-  });
 
   if (desk.orientation === "horizontal") {
     div.style.width = deskWidth + "px";
@@ -137,6 +132,11 @@ function createDeskElement(desk) {
     e.stopPropagation();
     desk.orientation = desk.orientation === "horizontal" ? "vertical" : "horizontal";
     render();
+  });
+  
+  div.querySelector(".desk-content").aaddEventListener("dblclick", (e) => {
+    e.stopPropagation();
+    openEditModal(desk);
   });
 
   addDnD(div);
