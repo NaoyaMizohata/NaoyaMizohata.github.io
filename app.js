@@ -134,7 +134,7 @@ function createDeskElement(desk) {
     render();
   });
   
-  div.querySelector(".desk-content").aaddEventListener("dblclick", (e) => {
+  div.querySelector(".desk-content").addEventListener("dblclick", (e) => {
     e.stopPropagation();
     openEditModal(desk);
   });
