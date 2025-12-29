@@ -2,13 +2,13 @@
 
 const container = document.getElementById("desk-container");
 let desks = [];
-let maxX = 6;
-let maxY = 4;
+let maxX = 50;
+let maxY = 50;
 
 const deskWidth = 140;
 const deskHeight = 70;
-const initialColSize = deskWidth;
-const initialRowSize = deskWidth;
+const initialColSize = 35;
+const initialRowSize = 35;
 
 let colSizes = Array(maxX).fill(initialColSize);
 let rowSizes = Array(maxY).fill(initialRowSize);
