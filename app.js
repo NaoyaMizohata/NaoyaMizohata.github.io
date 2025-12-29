@@ -7,8 +7,8 @@ let maxY = 50;
 
 const deskWidth = 140;
 const deskHeight = 70;
-const initialColSize = 35;
-const initialRowSize = 35;
+const initialColSize = 70;
+const initialRowSize = 70;
 
 let colSizes = Array(maxX).fill(initialColSize);
 let rowSizes = Array(maxY).fill(initialRowSize);
@@ -147,12 +147,10 @@ function createDeskElement(desk) {
 function addDnD(el) {
   el.addEventListener("dragstart", e => {
     e.dataTransfer.setData("id", el.dataset.id);
-    el.style.zIndex = -100;
-    el.style.visibility = "hidden";
+    el.style.zIndex = 100;
   });
   el.addEventListener("dragend", e => {
     el.style.zIndex = 10;
-    el.style.visibility = "visible";
   });
   el.addEventListener("dragover", e => e.preventDefault());
   el.addEventListener("drop", e => {
