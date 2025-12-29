@@ -311,6 +311,7 @@ function openEditModal(desk) {
   text1Input.value = desk.text1;
   text2Input.value = desk.text2;
   text3Input.value = desk.text3;
+  modal.style.display = "flex";
 }
 
 document.getElementById("save-edit").onclick = () => {
@@ -337,6 +338,7 @@ function closeModal() {
   text1Input.value = "";
   text2Input.value = "";
   text3Input.value = "";
+  modal.style.display = "none";
 }
 
 /* --- 初期ロード --- */
