@@ -147,10 +147,12 @@ function createDeskElement(desk) {
 function addDnD(el) {
   el.addEventListener("dragstart", e => {
     e.dataTransfer.setData("id", el.dataset.id);
-    el.style.zIndex = 5;
+    el.style.zIndex = 100;
+    el.style.visibility = "hidden";
   });
   el.addEventListener("dragend", e => {
     el.style.zIndex = 10;
+    el.style.visibility = "visible";
   });
   el.addEventListener("dragover", e => e.preventDefault());
   el.addEventListener("drop", e => {
@@ -158,7 +160,7 @@ function addDnD(el) {
     const fromId = e.dataTransfer.getData("id");
     const fromDesk = desks.find(d => d.id === fromId);
     const toDeskId = el.dataset.id;
-    if (toDeskId !== fromId) {
+    if (toDeskId) {
       const toDesk = desks.find(d => d.id === toDeskId);
       [fromDesk.x, toDesk.x] = [toDesk.x, fromDesk.x];
       [fromDesk.y, toDesk.y] = [toDesk.y, fromDesk.y];
