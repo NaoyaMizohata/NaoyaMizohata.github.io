@@ -158,7 +158,7 @@ function addDnD(el) {
     const fromId = e.dataTransfer.getData("id");
     const fromDesk = desks.find(d => d.id === fromId);
     const toDeskId = el.dataset.id;
-    if (toDeskId) {
+    if (toDeskId !== fromId) {
       const toDesk = desks.find(d => d.id === toDeskId);
       [fromDesk.x, toDesk.x] = [toDesk.x, fromDesk.x];
       [fromDesk.y, toDesk.y] = [toDesk.y, fromDesk.y];
