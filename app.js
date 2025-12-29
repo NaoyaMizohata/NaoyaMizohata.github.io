@@ -147,7 +147,7 @@ function createDeskElement(desk) {
 function addDnD(el) {
   el.addEventListener("dragstart", e => {
     e.dataTransfer.setData("id", el.dataset.id);
-    el.style.zIndex = 100;
+    el.style.zIndex = -100;
     el.style.visibility = "hidden";
   });
   el.addEventListener("dragend", e => {
